@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect
 from .forms import SignUpForm
 from django.contrib.auth import login, authenticate
-
+from .models import CustomUser
 
 def signup(request):
     if request.method == 'POST':
@@ -9,7 +9,7 @@ def signup(request):
         if form.is_valid():
             user = form.save()
             login(request, user)
-            return redirect('home')
+            return redirect('/')
     else:
         form = SignUpForm()
     
