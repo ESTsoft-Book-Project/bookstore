@@ -10,4 +10,4 @@
 6. `./manage.py migrate` ==> migration is telling django to change state of DB.
 7. `./manage.py runserver` ==> as this command says, you'll be prompted some URL that can lead you to a blog! 🎈🎈🎉
 
-PR
+PR2
