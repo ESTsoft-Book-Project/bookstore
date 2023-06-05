@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>회원가입</title>
+  </head>
+  <body>
+    <h1>회원가입</h1>
+    <form method="POST">
+      <label for="username">사용자명:</label>
+      <input type="text" id="username" name="username" required /><br /><br />
+
+      <label for="email">이메일:</label>
+      <input type="email" id="email" name="email" required /><br /><br />
+
+      <label for="password">비밀번호:</label>
+      <input
+        type="password"
+        id="password"
+        name="password"
+        required
+      /><br /><br />
+
+      <label for="confirm-password">비밀번호 확인:</label>
+      <input
+        type="password"
+        id="confirm-password"
+        name="confirm-password"
+        required
+      /><br /><br />
+
+      <input type="submit" value="가입하기" />
+    </form>
+  </body>
+</html>
