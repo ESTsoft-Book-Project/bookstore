@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>로그인 페이지</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+      }
+
+      .container {
+        max-width: 400px;
+        margin: 0 auto;
+        padding: 20px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+      }
+
+      .container h2 {
+        text-align: center;
+      }
+
+      .container input[type="text"],
+      .container input[type="password"] {
+        width: 100%;
+        padding: 12px 20px;
+        margin: 8px 0;
+        display: inline-block;
+        border: 1px solid #ccc;
+        box-sizing: border-box;
+        border-radius: 4px;
+      }
+
+      .container button {
+        background-color: #4caf50;
+        color: white;
+        padding: 14px 20px;
+        margin: 8px 0;
+        border: none;
+        cursor: pointer;
+        width: 100%;
+      }
+
+      .container button:hover {
+        background-color: #45a049;
+      }
+    </style>
+  </head>
+  <body>
+    {% if user.is_authenticated %}
+    <h1>로그인 성공</h1>
+    <h2>{{ user.username }}님 환영합니다.</h2>
+    {% else %}
+    <div class="container">
+      <h2>로그인</h2>
+      <form action="" method="post">
+        {% csrf_token %}
+        <label for="username">사용자 이름:</label>
+        <input type="text" id="username" name="username" />
+
+        <label for="password">비밀번호:</label>
+        <input type="password" id="password" name="password" />
+
+        <button type="submit">로그인</button>
+      </form>
+    </div>
+    {% endif %}
+  </body>
+</html>
