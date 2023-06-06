@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>프로필</title>
+</head>
+<body>
+    <h1>프로필</h1>
+    <form method="post" action="{% url 'users:profile' %}">
+        {% csrf_token %}
+        <label for="username">사용자명:</label>
+        <input type="text" id="username" name="username" value="{{ user.username }}" /><br /><br />
+
+        <label for="email">이메일:</label>
+        <input type="email" id="email" name="email" value="{{ user.email }}" /><br /><br />
+
+        <label for="password">비밀번호:</label>
+        <input type="password" id="password" name="password" value="{{ user.password }}" /><br /><br />
+
+        <input type="submit" value="수정하기" />
+    </form>
+</body>
+</html>
