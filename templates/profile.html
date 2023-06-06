@@ -21,5 +21,10 @@
 
         <input type="submit" value="수정하기" />
     </form>
+
+    <form method="post" action="{% url 'users:delete_user' %}">
+        {% csrf_token %}
+        <input type="submit" value="계정 삭제하기" onclick="return confirm('정말로 계정을 삭제하시겠습니까?');" />
+    </form>
 </body>
 </html>

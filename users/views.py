@@ -37,3 +37,9 @@ def profile(request):
         return redirect('users:profile')
     else:
         return render(request, 'profile.html', {'user': request.user})
+    
+def delete_user(request):
+    user = request.user
+    user.delete()
+    logout(request)
+    return redirect('/')

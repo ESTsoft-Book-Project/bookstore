@@ -23,5 +23,6 @@ urlpatterns = [
     path('signup/', signup, name='signup'),
     path('signin/', signin, name='signin'),
     path('profile/', profile, name='profile'),
+    path('deleteUser/', delete_user, name='delete_user'),
 ]
 
