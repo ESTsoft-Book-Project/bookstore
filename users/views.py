@@ -9,6 +9,7 @@ def signup(request):
     if request.method == "POST":
         form = SignupForm(request.POST)
         if form.is_valid():
+            print("DEBUG>>>>is valid!")
             form.save()
             return redirect(reverse("users:signin"))
         else:
@@ -24,9 +25,9 @@ def signup(request):
 
 def signin(request):
     if request.method == "POST":
-        username = request.POST["username"]
+        email = request.POST["email"]
         password = request.POST["password"]
-        user = authenticate(username=username, password=password)
+        user = authenticate(email=email, password=password)
         if user:
             login(request, user)
 
