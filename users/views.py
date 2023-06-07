@@ -9,27 +9,22 @@ def signup(request):
     if request.method == 'POST':
         form = SignUpForm(request.POST)
 
-        if form.is_valid():
-            user = form.save()
-            login(request, user)
-            return redirect(reverse('users:signin'))
-
         try:
             if form.is_valid():
                 username = form.cleaned_data.get('username')
                 email = form.cleaned_data.get('email')
                 password1 = form.cleaned_data.get('password1')
                 password2 = form.cleaned_data.get('password2')
-                if password1 != password2:
-                    form.add_error('password2', '비밀번호가 일치하지 않습니다.')
-                elif len(password1) < 8:
-                    form.add_error('password1', '비밀번호는 8자리 이상이어야 합니다.')
-                elif len(username) < 6 or len(username) > 30:
+                if len(username) < 6 or len(username) > 30:
                     form.add_error('username', '사용자 이름은 6에서 30글자 사이여야 합니다.')
                 elif not username.isalnum():
                     form.add_error('username', '영문과 숫자만 입력 가능합니다.')
                 elif CustomUser.objects.filter(email=email).exists():
                     form.add_error('email', '중복되는 이메일입니다.')
+                elif len(password1) < 8:
+                    form.add_error('password1', '비밀번호는 8자리 이상이어야 합니다.')
+                elif password1 != password2:
+                    form.add_error('password2', '비밀번호가 일치하지 않습니다.')
                 else:
                     user = form.save()
                     login(request, user)
