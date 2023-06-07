@@ -3,10 +3,17 @@ from .forms import SignUpForm
 from django.contrib.auth import login, authenticate, logout
 from .models import CustomUser
 from django.http import HttpResponseBadRequest
+from django.urls import reverse
 
 def signup(request):
     if request.method == 'POST':
         form = SignUpForm(request.POST)
+
+        if form.is_valid():
+            user = form.save()
+            login(request, user)
+            return redirect(reverse('users:signin'))
+
         try:
             if form.is_valid():
                 username = form.cleaned_data.get('username')
@@ -26,7 +33,7 @@ def signup(request):
                 else:
                     user = form.save()
                     login(request, user)
-                    return redirect('signin/') 
+                    return redirect(reverse('users:signin'))
         except:
             return HttpResponseBadRequest()
     else:
