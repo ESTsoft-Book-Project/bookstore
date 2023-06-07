@@ -15,7 +15,6 @@ def signup(request):
         else:
             print("DEBUG >>> validation failed")
             print(form.errors)
-            # TODO: Does not show in templates!
             return render(request, "signup.html", {"form": form})
     else:
         form = SignupForm()
