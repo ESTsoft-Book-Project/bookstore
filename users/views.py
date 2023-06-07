@@ -8,7 +8,6 @@ from django.urls import reverse
 def signup(request):
     if request.method == 'POST':
         form = SignUpForm(request.POST)
-
         try:
             if form.is_valid():
                 username = form.cleaned_data.get('username')
@@ -27,7 +26,6 @@ def signup(request):
                     form.add_error('password2', '비밀번호가 일치하지 않습니다.')
                 else:
                     user = form.save()
-                    login(request, user)
                     return redirect(reverse('users:signin'))
         except:
             return HttpResponseBadRequest()
