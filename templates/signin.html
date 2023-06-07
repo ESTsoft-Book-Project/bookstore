@@ -19,7 +19,7 @@
         text-align: center;
       }
 
-      .container input[type="text"],
+      .container input[type="email"],
       .container input[type="password"] {
         width: 100%;
         padding: 12px 20px;
@@ -47,15 +47,15 @@
   </head>
   <body>
     {% if user.is_authenticated %}
-    <h1>로그인 성공</h1>
-    <h2>{{ user.username }}님 환영합니다.</h2>
+      <h1>로그인 성공</h1>
+      <h2>{{ user }}님 환영합니다.</h2>
     {% else %}
     <div class="container">
       <h2>로그인</h2>
       <form action="" method="post">
         {% csrf_token %}
-        <label for="username">사용자 이름:</label>
-        <input type="text" id="username" name="username" />
+        <label for="email">이메일 주소:</label>
+        <input type="email" id="email" name="email" />
 
         <label for="password">비밀번호:</label>
         <input type="password" id="password" name="password" />

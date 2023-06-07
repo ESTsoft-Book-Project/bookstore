@@ -9,11 +9,11 @@
     <h1>회원가입</h1>
     <form method="post">
       {% csrf_token %}
-      <label for="username">사용자명:</label>
-      <input type="text" id="username" name="username" required /><br /><br />
-
       <label for="email">이메일:</label>
       <input type="email" id="email" name="email" required /><br /><br />
+
+      <label for="nickname">닉네임:</label>
+      <input type="text" id="nickname" name="nickname" required /><br /><br />
 
       <label for="password1">비밀번호:</label>
       <input
@@ -31,18 +31,18 @@
         required
       /><br /><br />
 
-      <!-- error message -->
-      {% if form.errors %}
-        <ul class="errorlist">
-            {% for field_errors in form.errors.values %}
-                {% for error in field_errors %}
-                    <li>{{ error }}</li>
-                {% endfor %}
-            {% endfor %}
-        </ul>
-      {% endif %}
-
       <input type="submit" value="가입하기" />
     </form>
+
+    <!-- error message -->
+    {% if form.errors %}
+    <ul class="errorlist">
+      {% for field_errors in form.errors.values.all %} 
+        {% for error in field_errors %}
+          <li>{{ error }}</li>
+        {% endfor %} 
+      {% endfor %}
+    </ul>
+    {% endif %}
   </body>
 </html>
