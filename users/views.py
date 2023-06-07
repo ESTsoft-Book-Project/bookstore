@@ -16,9 +16,9 @@ def signup(request):
                 if password1 != password2:
                     form.add_error('password2', '비밀번호가 일치하지 않습니다.')
                 elif len(password1) < 8:
-                    form.add_error('password1', '비밀번호는 최소 8자리 이상이어야 합니다.')
-                elif len(password1) < 8:
-                    form.add_error('password1', '비밀번호는 최소 8자리 이상이어야 합니다.')
+                    form.add_error('password1', '비밀번호는 8자리 이상이어야 합니다.')
+                elif len(username) < 6 or len(username) > 30:
+                    form.add_error('username', '사용자 이름은 6에서 30글자 사이여야 합니다.')
                 elif not username.isalnum():
                     form.add_error('username', '영문과 숫자만 입력 가능합니다.')
                 elif CustomUser.objects.filter(email=email).exists():
