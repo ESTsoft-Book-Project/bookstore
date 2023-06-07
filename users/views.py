@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect
 from .forms import SignUpForm
-from django.contrib.auth import login, authenticate
+from django.contrib.auth import login, authenticate, logout
 from .models import CustomUser
 from django.http import HttpResponseBadRequest
 
@@ -43,3 +43,22 @@ def signin(request):
             login(request, user)
         
     return render(request,'signin.html')
+
+def profile(request):
+    if request.method == 'POST':
+        user = request.user
+        user.username = request.POST['username']
+        user.email = request.POST['email']
+        update_password = request.POST['password']
+        if update_password:
+            user.set_password(update_password)
+        user.save()
+        return redirect('users:profile')
+    else:
+        return render(request, 'profile.html', {'user': request.user})
+    
+def delete_user(request):
+    user = request.user
+    user.delete()
+    logout(request)
+    return redirect('/')
