@@ -1,9 +1,12 @@
+import json
 from django.shortcuts import render, redirect
 from django.contrib.auth import login, authenticate, logout
-from django.http import HttpResponse, HttpResponseBadRequest
+from django.http import HttpRequest, HttpResponseBadRequest
 from django.urls import reverse
-from .forms import SignupForm
 from django.contrib.auth import update_session_auth_hash
+from django.contrib.auth.models import AnonymousUser
+from users.models import User
+from .forms import SignupForm
 
 
 def signup(request):
@@ -25,6 +28,7 @@ def signup(request):
 
 def signin(request):
     if request.method == "POST":
+        print(f"DEBUG >>> request.body = {request.body}")
         email = request.POST["email"]
         password = request.POST["password"]
         user = authenticate(email=email, password=password)
@@ -34,19 +38,31 @@ def signin(request):
     return render(request, "signin.html")
 
 
-def profile(request):
+def profile(request: HttpRequest):
+    if isinstance(request.user, AnonymousUser):
+        # 이렇게 하는 방법 말고 `LoginRequiredMixin`과 `UserPassesTestMixin`을 상속받는 방법이 더 좋을 것 같다.
+        return HttpResponseBadRequest()
+
+    user = User(request.user)
+
     if request.method == "POST":
-        user = request.user
-        user.nickname = request.POST["nickname"]
+        print(f"DEBUG >>> POST method for {request.user} has arrived!")
+
         user.email = request.POST["email"]
+        user.nickname = request.POST["nickname"]
         update_password = request.POST["password"]
         if update_password:
             user.set_password(update_password)
             update_session_auth_hash(request, user)
-        user.save()
-        return redirect(reverse("users:profile"))
-    else:
+
+        # FIXME: 임시로 박아넣은 render. 나중엔 JSONResponse를 리턴.
         return render(request, "profile.html", {"user": request.user})
+
+    elif request.method == "GET":
+        return render(request, "profile.html", {"user": request.user})
+
+    else:
+        return HttpResponseBadRequest()
 
 
 def delete_user(request):

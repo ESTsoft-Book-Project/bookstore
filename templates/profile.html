@@ -1,20 +1,24 @@
 <!DOCTYPE html>
 <html lang="ko">
+
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>프로필</title>
+    <script src="https://code.jquery.com/jquery-3.7.0.js"
+        integrity="sha256-JlqSTELeR4TLqP0OG9dxM7yDPqX1ox/HfgiSLBj8+kM=" crossorigin="anonymous"></script>
 </head>
+
 <body>
     <h1>프로필</h1>
-    <form method="post" action="{% url 'users:profile' %}">
+    <form method="post" id="post-form" action="{%url 'users:profile'%}">
         {% csrf_token %}
         <label for="email">이메일:</label>
-        <input type="email" id="email" name="email" value="{{ user.email }}" /><br /><br />
+        <input type="email" id="email" name="email" value="" /><br /><br />
 
         <label for="nickname">닉네임:</label>
-        <input type="text" id="nickname" name="nickname" value="{{ user.nickname }}" /><br /><br />
+        <input type="text" id="nickname" name="nickname" value="" /><br /><br />
 
         <label for="password">비밀번호:</label>
         <input type="password" id="password" name="password" /><br /><br />
@@ -26,5 +30,28 @@
         {% csrf_token %}
         <input type="submit" value="계정 삭제하기" onclick="return confirm('정말로 계정을 삭제하시겠습니까?');" />
     </form>
+
+    <script>
+        $(document).on('submit', '#post-form', (e) => {
+            e.preventDefault(); // prevent the page from reloading
+
+            $.ajax({
+                type: 'POST',
+                url: "{% url 'users:profile' %}",
+                data: {
+                    email: $('#email').val(),
+                    nickname: $('#nickname').val(),
+                    password: $('#password').val(),
+                    // CSRF TOKEN BELOW
+                    csrfmiddlewaretoken: $('input[name=csrfmiddlewaretoken]').val(),
+                },
+                success: (data) => {
+                    // data: response
+                    console.log(data);
+                },
+            });
+        });
+    </script>
 </body>
+
 </html>
