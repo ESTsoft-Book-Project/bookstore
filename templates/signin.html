@@ -46,10 +46,10 @@
     </style>
   </head>
   <body>
-    {% if user.is_authenticated %}
+    <!-- {% if user.is_authenticated %}
       <h1>로그인 성공</h1>
       <h2>{{ user }}님 환영합니다.</h2>
-    {% else %}
+    {% else %} -->
     <div class="container">
       <h2>로그인</h2>
       <form action="" method="post">
@@ -63,6 +63,11 @@
         <button type="submit">로그인</button>
       </form>
     </div>
+    {% if error_message %}
+    <script>
+      alert("{{ error_message }}");
+    </script>
     {% endif %}
+    <!-- {% endif %} -->
   </body>
 </html>

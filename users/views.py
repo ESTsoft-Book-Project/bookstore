@@ -24,14 +24,18 @@ def signup(request):
 
 
 def signin(request):
+    error_message = None
     if request.method == "POST":
         email = request.POST["email"]
         password = request.POST["password"]
-        user = authenticate(email=email, password=password)
+        user = authenticate(request, email=email, password=password)
         if user:
             login(request, user)
+            return redirect('/')
+        else:
+            error_message = "Invalid email or password!"
 
-    return render(request, "signin.html")
+    return render(request, "signin.html", {'error_message':error_message})
 
 
 def profile(request):
