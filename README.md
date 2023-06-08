@@ -46,3 +46,13 @@ Here are some tips for avoiding migration conflicts:
 * If you are working on a team, make sure that everyone is using the same version of the Django code. This will help to prevent conflicts caused by different versions of the code.
 
 By following these tips, you can help to avoid migration conflicts and keep your Django projects running smoothly.
+
+### At the time from very beginning ==> hard reset
+
+If your database has no meaningful data, you can just delete `db.sqlite`file in your root directory. That file already ignored by .gitignore, so it won't impact any other projects.
+
+After that, you can re-enter those commands to get it done,
+
+```shell
+python manage.py migrate
+```
