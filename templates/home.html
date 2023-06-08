@@ -1,6 +1,19 @@
-{% if user.is_authenticated %}
+<!DOCTYPE html>
+<html lang="ㅏㅐ">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>bookstore</title>
+</head>
+<body>
+    {% if user.is_authenticated %}
     {{ user.nickname }}님 환영합니다
     <a href="{% url 'users:signout' %}">Sign out</a>
-{% else %}
+    
+    {% else %}
     home
-{% endif %}
+
+    {% endif %}
+</body>
+</html>
