@@ -46,13 +46,10 @@
     </style>
   </head>
   <body>
-    <!-- {% if user.is_authenticated %}
-      <h1>로그인 성공</h1>
-      <h2>{{ user }}님 환영합니다.</h2>
-    {% else %} -->
+    {% if not user.is_authenticated %}
     <div class="container">
       <h2>로그인</h2>
-      <form action="" method="post">
+      <form id="login_form" method="post">
         {% csrf_token %}
         <label for="email">이메일 주소:</label>
         <input type="email" id="email" name="email" />
@@ -63,11 +60,77 @@
         <button type="submit">로그인</button>
       </form>
     </div>
-    {% if error_message %}
+    {% else %}
     <script>
-      alert("{{ error_message }}");
+        window.location.href = "/";
     </script>
     {% endif %}
-    <!-- {% endif %} -->
   </body>
+  <script>
+    function getCookie(name) {
+        var cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            var cookies = document.cookie.split(';');
+            for (var i = 0; i < cookies.length; i++) {
+                var cookie = cookies[i].trim();
+                // Does this cookie string begin with the name we want?
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    const csrftoken = getCookie('csrftoken');
+
+    document.getElementById('login_form').addEventListener('submit', function (e) {
+        e.preventDefault();
+        var email = document.getElementById('email').value;
+        var password = document.getElementById('password').value;
+
+        const formData = new URLSearchParams();
+        formData.append('email', email);
+        formData.append('password', password);
+
+        fetch('{% url "users:signin" %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': csrftoken
+            },
+            body: formData.toString()
+        })
+            .then(response => response.json())
+            .then(data => {
+              console.log(data);
+              console.log(data.status);
+                if (data.statusCode == 200) {
+                    window.location.href = data.redirect;
+                } else {
+                    alert('아이디 또는 비밀번호가 맞지 않습니다');
+                }
+            })
+            .catch(
+                error => console.log(error)
+            );
+    });
+
+    function signout() {
+        fetch('{% url "users:signout" %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrftoken
+            }
+        })
+            .then(response => response.json())
+            .then(data => {
+                console.log(data)
+                window.location.href = data.redirect;
+            })
+            .catch(error => console.log(error));
+    };
+  </script>
 </html>

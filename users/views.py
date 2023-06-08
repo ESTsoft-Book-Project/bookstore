@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect
+
 from django.contrib.auth import login, authenticate, logout
-from django.http import HttpResponse, HttpResponseBadRequest
+from django.http import JsonResponse
 from django.urls import reverse
 from .forms import SignupForm
 
@@ -22,24 +23,18 @@ def signup(request):
 
     return render(request, "signup.html", {"form": form})
 
-
 def signin(request):
-    error_message = None
-    if request.method == "POST":
-        email = request.POST["email"]
-        password = request.POST["password"]
-        user = authenticate(request, email=email, password=password)
+    if request.method == 'POST':
+        email = request.POST.get('email')
+        password = request.POST.get('password')
+        user = authenticate(username=email, password=password)
         if user:
             login(request, user)
-            return redirect('/')
+            return JsonResponse({'result': True, 'redirect': '', 'statusCode': 200})
         else:
-            error_message = "Invalid email or password!"
-
-    return render(request, "signin.html", {'error_message':error_message})
-
-def signout(request):
-    logout(request)
-    return redirect('users:signin')
+            return JsonResponse({'result': False, 'statusCode': 400})
+        
+    return render(request,'signin.html')
 
 def profile(request):
     if request.method == "POST":
@@ -54,9 +49,13 @@ def profile(request):
     else:
         return render(request, "profile.html", {"user": request.user})
 
-
 def delete_user(request):
     user = request.user
     user.delete()
     logout(request)
-    return redirect("/")
+    return redirect("/")    
+
+def signout(request):
+    logout(request)
+    return JsonResponse({'result': True, 'redirect': '', 'statusCode': 200})
+
