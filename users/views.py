@@ -3,6 +3,7 @@ from django.contrib.auth import login, authenticate, logout
 from django.http import HttpResponse, HttpResponseBadRequest
 from django.urls import reverse
 from .forms import SignupForm
+from django.contrib.auth import update_session_auth_hash
 
 
 def signup(request):
@@ -36,13 +37,14 @@ def signin(request):
 def profile(request):
     if request.method == "POST":
         user = request.user
-        user.username = request.POST["username"]
+        user.nickname = request.POST["nickname"]
         user.email = request.POST["email"]
         update_password = request.POST["password"]
         if update_password:
             user.set_password(update_password)
+            update_session_auth_hash(request, user)
         user.save()
-        return redirect("users:profile")
+        return redirect(reverse("users:profile"))
     else:
         return render(request, "profile.html", {"user": request.user})
 
