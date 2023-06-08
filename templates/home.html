@@ -1,1 +1,6 @@
-HOME
+{% if user.is_authenticated %}
+    {{ user.nickname }}님 환영합니다
+    <a href="{% url 'users:signout' %}">Sign out</a>
+{% else %}
+    home
+{% endif %}

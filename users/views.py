@@ -37,6 +37,9 @@ def signin(request):
 
     return render(request, "signin.html", {'error_message':error_message})
 
+def signout(request):
+    logout(request)
+    return redirect('users:signin')
 
 def profile(request):
     if request.method == "POST":
