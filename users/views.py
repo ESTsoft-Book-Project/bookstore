@@ -1,4 +1,5 @@
 import json
+from typing import cast
 from django.shortcuts import render, redirect
 from django.contrib.auth import login, authenticate, logout
 from django.http import HttpRequest, HttpResponseBadRequest
@@ -43,11 +44,10 @@ def profile(request: HttpRequest):
         # 이렇게 하는 방법 말고 `LoginRequiredMixin`과 `UserPassesTestMixin`을 상속받는 방법이 더 좋을 것 같다.
         return HttpResponseBadRequest()
 
-    user = User(request.user)
+    print(f"DEBUG >>> user {request.user} has arrived!")
+    user = cast(User, request.user)
 
     if request.method == "POST":
-        print(f"DEBUG >>> POST method for {request.user} has arrived!")
-
         user.email = request.POST["email"]
         user.nickname = request.POST["nickname"]
         update_password = request.POST["password"]
@@ -55,6 +55,7 @@ def profile(request: HttpRequest):
             user.set_password(update_password)
             update_session_auth_hash(request, user)
 
+        user.save()
         # FIXME: 임시로 박아넣은 render. 나중엔 JSONResponse를 리턴.
         return render(request, "profile.html", {"user": request.user})
 
