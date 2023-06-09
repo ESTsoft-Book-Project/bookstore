@@ -35,6 +35,7 @@ def signin(request):
 
     return render(request, "signin.html")
 
+@login_required(login_url="/users/signin/")
 def profile(request):
     if request.method == "POST":
         user = request.user
@@ -49,6 +50,7 @@ def profile(request):
     else:
         return render(request, "profile.html", {"user": request.user})
 
+@login_required(login_url="/users/signin/")
 def delete_user(request):
     user = request.user
     user.delete()
