@@ -2,7 +2,7 @@ import json
 from typing import cast
 from django.shortcuts import render, redirect
 from django.contrib.auth import login, authenticate, logout
-from django.http import HttpRequest, HttpResponseBadRequest
+from django.http import HttpRequest, HttpResponseBadRequest, JsonResponse
 from django.urls import reverse
 from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth.models import AnonymousUser
@@ -56,8 +56,7 @@ def profile(request: HttpRequest):
             update_session_auth_hash(request, user)
 
         user.save()
-        # FIXME: 임시로 박아넣은 render. 나중엔 JSONResponse를 리턴.
-        return render(request, "profile.html", {"user": request.user})
+        return JsonResponse({"message": "user save complete! 🎉"})
 
     elif request.method == "GET":
         return render(request, "profile.html", {"user": request.user})
