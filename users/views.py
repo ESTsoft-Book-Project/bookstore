@@ -45,28 +45,35 @@ def profile(request: HttpRequest):
         return HttpResponseBadRequest()
 
     print(f"DEBUG >>> user {request.user} has arrived!")
-    user = cast(User, request.user)
 
-    if request.method == "POST":
-        user.email = request.POST["email"]
-        user.nickname = request.POST["nickname"]
-        update_password = request.POST["password"]
-        if update_password:
-            user.set_password(update_password)
-            update_session_auth_hash(request, user)
-
-        user.save()
-        return JsonResponse({"message": "user save complete! 🎉"})
-
-    elif request.method == "GET":
+    if request.method == "GET":
         return render(request, "profile.html", {"user": request.user})
+
+    elif request.method == "PATCH":
+        data = cast(dict, json.loads(request.body))
+        print(f"patch data: {data}")
+
+        match (data["op"]):
+            case ("replace"):
+                user = cast(User, request.user)
+                user.nickname = data.get("nickname", user.nickname)
+                user.email = data.get("email", user.email)
+                update_password = data.get("password")
+                if update_password:
+                    user.set_password(update_password)
+                    update_session_auth_hash(request, user)
+                user.save()
+                return JsonResponse({"message": "user profile update has completed! 🎉"})
+
+            case ("remove"):
+                request.user.delete()
+                logout(request)
+                return JsonResponse(
+                    {"message": "You're account has succesfully deleted!"}
+                )
+
+            case (_):
+                raise NotImplementedError("Other operations are not implemented")
 
     else:
         return HttpResponseBadRequest()
-
-
-def delete_user(request):
-    user = request.user
-    user.delete()
-    logout(request)
-    return redirect("/")

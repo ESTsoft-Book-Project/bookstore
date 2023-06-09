@@ -8,11 +8,52 @@
     <title>프로필</title>
     <script src="https://code.jquery.com/jquery-3.7.0.js"
         integrity="sha256-JlqSTELeR4TLqP0OG9dxM7yDPqX1ox/HfgiSLBj8+kM=" crossorigin="anonymous"></script>
+    <script>
+
+        const update_user = () => {
+            $.ajax({
+                type: 'PATCH',
+                url: "{% url 'users:profile' %}",
+                data: {
+                    op: "replace",
+                    value: {
+                        email: $('#email').val(),
+                        nickname: $('#nickname').val(),
+                        password: $('#password').val(),
+                    },
+                    csrfmiddlewaretoken: $('input[name=csrfmiddlewaretoken]').val(),
+                },
+                success: (data) => {
+                    alert(data['message']);
+                },
+            });
+        };
+
+        const delete_user = () => {
+            if (!confirm("정말로 계정을 삭제하시겠습니까?")) {
+                return;
+            }
+            // TODO: do real work of deleting
+            $.ajax({
+                type: "PATCH",
+                url: "{%url 'users:profile' %}",
+                data: {
+                    op: "remove",
+                    value: {
+                    },
+                    csrfmiddlewaretoken: $('input[name=csrfmiddlewaretoken]').val(),
+                },
+                success: (data) => {
+                    alert(data['message']);
+                },
+            });
+        };
+    </script>
 </head>
 
 <body>
     <h1>프로필</h1>
-    <form method="post" id="post-form" action="{%url 'users:profile'%}">
+    <form id="post-form" action="{%url 'users:profile'%}">
         {% csrf_token %}
         <label for="email">이메일:</label>
         <input type="email" id="email" name="email" value="" /><br /><br />
@@ -23,35 +64,15 @@
         <label for="password">비밀번호:</label>
         <input type="password" id="password" name="password" /><br /><br />
 
-        <input type="submit" value="수정하기" />
+        <button onclick="update_user();" type="button">수정하기</button>
     </form>
 
-    <form method="post" action="{% url 'users:delete_user' %}">
+    <form id="delete-user" action="{% url 'users:profile' %}">
         {% csrf_token %}
-        <input type="submit" value="계정 삭제하기" onclick="return confirm('정말로 계정을 삭제하시겠습니까?');" />
+        <button onclick="delete_user();" type="button">계정 삭제하기</button>
     </form>
 
-    <script>
-        $(document).on('submit', '#post-form', (e) => {
-            e.preventDefault(); // prevent the page from reloading
 
-            $.ajax({
-                type: 'POST',
-                url: "{% url 'users:profile' %}",
-                data: {
-                    email: $('#email').val(),
-                    nickname: $('#nickname').val(),
-                    password: $('#password').val(),
-                    // CSRF TOKEN BELOW
-                    csrfmiddlewaretoken: $('input[name=csrfmiddlewaretoken]').val(),
-                },
-                success: (data) => {
-                    // data: response
-                    alert(data['message'])
-                },
-            });
-        });
-    </script>
 </body>
 
 </html>
