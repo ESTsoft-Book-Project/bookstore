@@ -4,6 +4,8 @@ from django.http import HttpResponse, HttpResponseBadRequest
 from django.urls import reverse
 from .forms import SignupForm
 from django.contrib.auth import update_session_auth_hash
+from django.http import JsonResponse
+from django.contrib.auth.decorators import login_required
 
 
 def signup(request):
@@ -33,7 +35,6 @@ def signin(request):
 
     return render(request, "signin.html")
 
-
 def profile(request):
     if request.method == "POST":
         user = request.user
@@ -44,13 +45,12 @@ def profile(request):
             user.set_password(update_password)
             update_session_auth_hash(request, user)
         user.save()
-        return redirect(reverse("users:profile"))
+        return JsonResponse({"message": "회원 정보 수정이 완료되었습니다."})
     else:
         return render(request, "profile.html", {"user": request.user})
-
 
 def delete_user(request):
     user = request.user
     user.delete()
     logout(request)
-    return redirect("/")
+    return JsonResponse({"message": "회원 탈퇴가 완료되었습니다."})
