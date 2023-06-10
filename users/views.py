@@ -29,7 +29,6 @@ def signup(request):
 
 def signin(request):
     if request.method == "POST":
-        print(f"DEBUG >>> request.body = {request.body}")
         email = request.POST["email"]
         password = request.POST["password"]
         user = authenticate(email=email, password=password)
@@ -50,6 +49,7 @@ def profile(request: HttpRequest):
         return render(request, "profile.html", {"user": request.user})
 
     elif request.method == "PATCH":
+        # FIXME: #21 request.body가 json이 아니라 raw string을 리턴한다. ==> json.decoder.JSONDecodeError
         data = cast(dict, json.loads(request.body))
         print(f"patch data: {data}")
 

@@ -9,6 +9,9 @@
     <script src="https://code.jquery.com/jquery-3.7.0.js"
         integrity="sha256-JlqSTELeR4TLqP0OG9dxM7yDPqX1ox/HfgiSLBj8+kM=" crossorigin="anonymous"></script>
     <script>
+        $.ajaxSetup({
+            headers: { "X-CSRFToken": "{{csrf_token}}" }
+        });
 
         const update_user = () => {
             $.ajax({
@@ -54,7 +57,6 @@
 <body>
     <h1>프로필</h1>
     <form id="post-form" action="{%url 'users:profile'%}">
-        {% csrf_token %}
         <label for="email">이메일:</label>
         <input type="email" id="email" name="email" value="" /><br /><br />
 
@@ -68,7 +70,6 @@
     </form>
 
     <form id="delete-user" action="{% url 'users:profile' %}">
-        {% csrf_token %}
         <button onclick="delete_user();" type="button">계정 삭제하기</button>
     </form>
 
