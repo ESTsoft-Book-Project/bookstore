@@ -31,18 +31,18 @@
         required
       /><br /><br />
 
+      <!-- error message -->
+      {% if form.errors %}
+        <ul class="errorlist">
+          {% for field_errors in form.errors.values %}
+            {% for error in field_errors %}
+              <li>{{ error }}</li>
+            {% endfor %}
+          {% endfor %}
+        </ul>
+      {% endif %}
+
       <input type="submit" value="가입하기" />
     </form>
-
-    <!-- error message -->
-    {% if form.errors %}
-    <ul class="errorlist">
-      {% for field_errors in form.errors.values.all %} 
-        {% for error in field_errors %}
-          <li>{{ error }}</li>
-        {% endfor %} 
-      {% endfor %}
-    </ul>
-    {% endif %}
   </body>
 </html>

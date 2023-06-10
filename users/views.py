@@ -4,6 +4,9 @@ from django.contrib.auth import login, authenticate, logout
 from django.http import JsonResponse
 from django.urls import reverse
 from .forms import SignupForm
+from django.contrib.auth import update_session_auth_hash
+from django.http import JsonResponse
+from django.contrib.auth.decorators import login_required
 
 
 def signup(request):
@@ -16,8 +19,7 @@ def signup(request):
         else:
             print("DEBUG >>> validation failed")
             print(form.errors)
-            # TODO: Does not show in templates!
-            return render(request, "signup.html", {"form": SignupForm()})
+            return render(request, "signup.html", {"form": form})
     else:
         form = SignupForm()
 
@@ -36,26 +38,29 @@ def signin(request):
         
     return render(request,'signin.html')
 
+
+@login_required(login_url="/users/signin/")
 def profile(request):
     if request.method == "POST":
         user = request.user
-        user.username = request.POST["username"]
+        user.nickname = request.POST["nickname"]
         user.email = request.POST["email"]
         update_password = request.POST["password"]
         if update_password:
             user.set_password(update_password)
+            update_session_auth_hash(request, user)
         user.save()
-        return redirect("users:profile")
+        return JsonResponse({"message": "회원 정보 수정이 완료되었습니다."})
     else:
         return render(request, "profile.html", {"user": request.user})
 
+@login_required(login_url="/users/signin/")
 def delete_user(request):
     user = request.user
     user.delete()
     logout(request)
-    return redirect("/")    
+    return JsonResponse({"message": "회원 탈퇴가 완료되었습니다."})
 
 def signout(request):
     logout(request)
     return JsonResponse({'result': True, 'redirect': '', 'statusCode': 200})
-

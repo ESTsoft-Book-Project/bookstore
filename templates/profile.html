@@ -5,26 +5,65 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>프로필</title>
+    <script src="https://code.jquery.com/jquery-3.7.0.js"
+        integrity="sha256-JlqSTELeR4TLqP0OG9dxM7yDPqX1ox/HfgiSLBj8+kM=" crossorigin="anonymous"></script>
 </head>
 <body>
     <h1>프로필</h1>
-    <form method="post" action="{% url 'users:profile' %}">
-        {% csrf_token %}
-        <label for="username">사용자명:</label>
-        <input type="text" id="username" name="username" value="{{ user.username }}" /><br /><br />
-
+    <form id="profile" method="post">
         <label for="email">이메일:</label>
         <input type="email" id="email" name="email" value="{{ user.email }}" /><br /><br />
 
+        <label for="nickname">닉네임:</label>
+        <input type="text" id="nickname" name="nickname" value="{{ user.nickname }}" /><br /><br />
+
         <label for="password">비밀번호:</label>
-        <input type="password" id="password" name="password" value="{{ user.password }}" /><br /><br />
+        <input type="password" id="password" name="password" /><br /><br />
 
         <input type="submit" value="수정하기" />
     </form>
 
-    <form method="post" action="{% url 'users:delete_user' %}">
-        {% csrf_token %}
-        <input type="submit" value="계정 삭제하기" onclick="return confirm('정말로 계정을 삭제하시겠습니까?');" />
+    <form id="userDelete" method="post">
+        <input type="submit" value="계정 삭제하기" />
     </form>
+
+    <script>
+        $.ajaxSetup({
+            headers: { "X-CSRFToken": "{{ csrf_token }}" }
+        });
+
+        $(document).ready(function () {
+            $("#profile").submit(function (e) {
+                e.preventDefault();
+                $.ajax({
+                    type: "POST",
+                    url: "/users/profile/",
+                    dataType: "JSON",
+                    data: {
+                        "email": $(this).find("#email").val(),
+                        "nickname": $(this).find("#nickname").val(),
+                        "password": $(this).find("#password").val(),
+                    },
+                    success: function (res) {
+                        alert(res.message);
+                    }
+                });
+            });
+        });
+
+        $("#userDelete").submit(function (e) {
+            e.preventDefault();
+            if (confirm("정말로 계정을 삭제하시겠습니까?")) {
+                $.ajax({
+                    type: "POST",
+                    url: "/users/deleteUser/",
+                    success: function (res) {
+                        alert(res.message);
+                        window.location.href = "/users/signin/";
+                    }
+                });
+            }
+        });
+    </script>
 </body>
 </html>

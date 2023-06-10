@@ -7,7 +7,12 @@ from .models import User
 
 
 class Admin(UserAdmin):
+    # IMPORTANT: override default User Forms! If you want to create new form,
+    # uncomment and replace default Forms
     add_form = SignupForm
+    # form = UserChangeForm
+    # change_password_form = AdminPasswordChangeForm
+
     model = User
     list_display = ["email", "nickname", "is_staff", "is_active"]
     list_filter = ["email"]
