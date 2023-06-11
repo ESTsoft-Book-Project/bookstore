@@ -116,21 +116,5 @@
                 error => console.log(error)
             );
     });
-
-    function signout() {
-        fetch('{% url "users:signout" %}', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': csrftoken
-            }
-        })
-            .then(response => response.json())
-            .then(data => {
-                console.log(data)
-                window.location.href = data.redirect;
-            })
-            .catch(error => console.log(error));
-    };
   </script>
 </html>
