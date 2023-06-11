@@ -31,17 +31,23 @@
     <script>
         document.querySelector("#userUpdate").addEventListener("submit", function (e) {
             e.preventDefault();
+
+            const userData = {
+                "email": document.querySelector("#email").value,
+                "nickname": document.querySelector("#nickname").value,
+            }
+
+            if (document.querySelector("#password").value) {
+                userData.password = document.querySelector("#password").value;
+            }
+
             fetch("/users/profile/", {
                 method: "PATCH",
                 headers: {
                     "Content-Type": "application/json",
                     "X-CSRFToken": getCookie("csrftoken")
                 },
-                body: JSON.stringify({
-                    "email": document.querySelector("#email").value,
-                    "nickname": document.querySelector("#nickname").value,
-                    "password": document.querySelector("#password").value
-                })
+                body: JSON.stringify(userData)
             })
                 .then(res => res.json())
                 .then(data => alert(data.message));
