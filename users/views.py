@@ -7,6 +7,7 @@ from .forms import SignupForm
 from django.contrib.auth import update_session_auth_hash
 from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
+import json
 
 
 def signup(request):
@@ -41,11 +42,11 @@ def signin(request):
 
 @login_required(login_url="/users/signin/")
 def profile(request):
-    if request.method == "POST":
+    if request.method == "PATCH":
         user = request.user
-        user.nickname = request.POST["nickname"]
-        user.email = request.POST["email"]
-        update_password = request.POST["password"]
+        user.email = json.loads(request.body).get("email", user.email)
+        user.nickname = json.loads(request.body).get("nickname", user.nickname)
+        update_password = json.loads(request.body).get("password")
         if update_password:
             user.set_password(update_password)
             update_session_auth_hash(request, user)

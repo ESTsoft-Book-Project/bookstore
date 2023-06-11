@@ -9,8 +9,9 @@
         integrity="sha256-JlqSTELeR4TLqP0OG9dxM7yDPqX1ox/HfgiSLBj8+kM=" crossorigin="anonymous"></script>
 </head>
 <body>
-    <h1>프로필</h1>
-    <form id="profile" method="post">
+    <form id="userUpdate" method="post">
+        {% csrf_token %}
+        <h1>프로필</h1>
         <label for="email">이메일:</label>
         <input type="email" id="email" name="email" value="{{ user.email }}" /><br /><br />
 
@@ -19,51 +20,65 @@
 
         <label for="password">비밀번호:</label>
         <input type="password" id="password" name="password" /><br /><br />
-
         <input type="submit" value="수정하기" />
     </form>
 
     <form id="userDelete" method="post">
+        {% csrf_token %}
         <input type="submit" value="계정 삭제하기" />
     </form>
 
     <script>
-        $.ajaxSetup({
-            headers: { "X-CSRFToken": "{{ csrf_token }}" }
+        document.querySelector("#userUpdate").addEventListener("submit", function (e) {
+            e.preventDefault();
+            fetch("/users/profile/", {
+                method: "PATCH",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": getCookie("csrftoken")
+                },
+                body: JSON.stringify({
+                    "email": document.querySelector("#email").value,
+                    "nickname": document.querySelector("#nickname").value,
+                    "password": document.querySelector("#password").value
+                })
+            })
+                .then(res => res.json())
+                .then(data => alert(data.message));
         });
 
-        $(document).ready(function () {
-            $("#profile").submit(function (e) {
-                e.preventDefault();
-                $.ajax({
-                    type: "POST",
-                    url: "/users/profile/",
-                    dataType: "JSON",
-                    data: {
-                        "email": $(this).find("#email").val(),
-                        "nickname": $(this).find("#nickname").val(),
-                        "password": $(this).find("#password").val(),
-                    },
-                    success: function (res) {
-                        alert(res.message);
-                    }
-                });
-            });
-        });
-
-        $("#userDelete").submit(function (e) {
+        document.querySelector("#userDelete").addEventListener("submit", function (e) {
             e.preventDefault();
             if (confirm("정말로 계정을 삭제하시겠습니까?")) {
-                $.ajax({
-                    type: "POST",
-                    url: "/users/deleteUser/",
-                    success: function (res) {
-                        alert(res.message);
-                        window.location.href = "/users/signin/";
+                fetch("/users/deleteUser/", {
+                    method: "DELETE",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": getCookie("csrftoken")
                     }
-                });
+                })
+                    .then(res => res.json())
+                    .then(data => {
+                        alert(data.message);
+                        window.location.href = "/users/signin/";
+                    });
             }
         });
+
+        function getCookie(name) {
+            var cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                var cookies = document.cookie.split(';');
+                for (var i = 0; i < cookies.length; i++) {
+                    var cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
     </script>
 </body>
 </html>
