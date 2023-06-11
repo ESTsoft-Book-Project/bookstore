@@ -32,7 +32,7 @@
         document.querySelector("#userUpdate").addEventListener("submit", function (e) {
             e.preventDefault();
             fetch("/users/profile/", {
-                method: "POST",
+                method: "PATCH",
                 headers: {
                     "Content-Type": "application/json",
                     "X-CSRFToken": getCookie("csrftoken")
@@ -51,7 +51,7 @@
             e.preventDefault();
             if (confirm("정말로 계정을 삭제하시겠습니까?")) {
                 fetch("/users/deleteUser/", {
-                    method: "POST",
+                    method: "DELETE",
                     headers: {
                         "Content-Type": "application/json",
                         "X-CSRFToken": getCookie("csrftoken")

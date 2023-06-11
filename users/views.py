@@ -38,7 +38,7 @@ def signin(request):
 
 @login_required(login_url="/users/signin/")
 def profile(request):
-    if request.method == "POST":
+    if request.method == "PATCH":
         user = request.user
         user.email = json.loads(request.body).get("email", user.email)
         user.nickname = json.loads(request.body).get("nickname", user.nickname)
