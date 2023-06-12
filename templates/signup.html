@@ -7,19 +7,20 @@
   </head>
   <body>
     <h1>회원가입</h1>
-    <form id="signup-form" method="post" onsubmit="event.preventDefault(); signUp()";>
+    <form id="signup-form" method="post" onsubmit="event.preventDefault(); signUp();">
       {% csrf_token %}
       <label for="email">이메일:</label>
-      <input type="email" id="email" name="email" required /><br /><br />
+      <input type="email" id="email" name="email" autocomplete="email" required /><br /><br />
 
       <label for="nickname">닉네임:</label>
-      <input type="text" id="nickname" name="nickname" required /><br /><br />
+      <input type="text" id="nickname" name="nickname" autocomplete="nickname" required /><br /><br />
 
       <label for="password1">비밀번호:</label>
       <input
         type="password"
         id="password1"
         name="password1"
+        autocomplete="new-password"
         required
       /><br /><br />
 
@@ -28,14 +29,17 @@
         type="password"
         id="password2"
         name="password2"
+        autocomplete="new-password"
         required
       /><br /><br />
 
-      <!-- error message -->
-      {% if errors %}
+      <!-- 에러 메시지 -->
+      {% if form.errors %}
         <ul class="errorlist">
-          {% for error in errors %}
-            <li>{{ error }}</li>
+          {% for field_errors in form.errors.values %}
+            {% for error in field_errors %}
+              <li>{{ error }}</li>
+            {% endfor %}
           {% endfor %}
         </ul>
       {% endif %}
@@ -44,36 +48,40 @@
     </form>
     <script>
       function signUp() {
+        let form = event.target;
+        let email = form.email.value;
+        let nickname = form.nickname.value;
+        let password1 = form.password1.value;
+        let password2 = form.password2.value;
+        let url = "/users/signup/";
       
-          let form = event.target;
-          let formData = new FormData(form);
-      
-          let url = "/users/signup/"; 
-      
-          fetch('http://127.0.0.1:8000/users/signup/', 
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'X-CSRFToken': getCookie('csrftoken'),
-            },
-            body: JSON.stringify(data),
+        fetch(url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken'),
+          },
+          body: JSON.stringify({
+            email: email,
+            nickname: nickname,
+            password1: password1,
+            password2: password2
+          }),
+        })
+          .then(response => response.json())
+          .then(data => {
+            if (data.success) {
+              alert("가입에 성공했습니다.");
+            } else {
+              alert("가입에 실패했습니다.");
+            }
           })
-        .then(response => response.json())
-        .then(data => {
-              if () {
-      
-              } else {
-                
-              }
-            })
-          
           .catch(error => {
-            console.error("Error:", error);
+            console.error("에러:", error);
           });
-        });
       }
       
-      // CSRF 
+      // CSRF 토큰
       function getCookie(name) {
         let cookieValue = null;
         if (document.cookie && document.cookie !== '') {
@@ -88,6 +96,6 @@
         }
         return cookieValue;
       }
-      </script>
+    </script>
   </body>
 </html>
