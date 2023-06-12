@@ -18,6 +18,7 @@ def signup(request):
         form = SignupForm(request.POST)
         if form.is_valid():
             form.save()
+            logout(request)
             
             if request.headers.get('Content-Type') == 'application/json':
                 return JsonResponse({'success': True, 'message': '회원가입이 완료되었습니다.'}, status = 200)
