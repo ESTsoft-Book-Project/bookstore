@@ -7,7 +7,7 @@
   </head>
   <body>
     <h1>회원가입</h1>
-    <form method="post">
+    <form id="signup-form" method="post" onsubmit="event.preventDefault(); signUp()";>
       {% csrf_token %}
       <label for="email">이메일:</label>
       <input type="email" id="email" name="email" required /><br /><br />
@@ -42,5 +42,52 @@
 
       <input type="submit" value="가입하기" />
     </form>
+    <script>
+      function signUp() {
+      
+          let form = event.target;
+          let formData = new FormData(form);
+      
+          let url = "/users/signup/"; 
+      
+          fetch('http://127.0.0.1:8000/users/signup/', 
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-CSRFToken': getCookie('csrftoken'),
+            },
+            body: JSON.stringify(data),
+          })
+        .then(response => response.json())
+        .then(data => {
+              if () {
+      
+              } else {
+                
+              }
+            })
+          
+          .catch(error => {
+            console.error("Error:", error);
+          });
+        });
+      }
+      
+      // CSRF 
+      function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+          const cookies = document.cookie.split(';');
+          for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === name + '=') {
+              cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+              break;
+            }
+          }
+        }
+        return cookieValue;
+      }
+      </script>
   </body>
 </html>
