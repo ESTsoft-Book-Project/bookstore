@@ -18,7 +18,7 @@ def signup(request):
         
         if form.is_valid():
             form.save()
-            return JsonResponse({'success': True, 'message': '회원가입이 완료되었습니다.'}, status=200)
+            return JsonResponse({'success': True, 'message': '회원가입이 완료되었습니다.', 'redirect': reverse('users:signin')}, status=200)
         else:
             errors = {}
             for field, field_errors in form.errors.items():
