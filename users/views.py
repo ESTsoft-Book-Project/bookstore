@@ -8,32 +8,24 @@ from django.contrib.auth import update_session_auth_hash
 from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
 import json
+from django.views.decorators.csrf import csrf_exempt
 
-
+@csrf_exempt
 def signup(request):
-    form = SignupForm()
-    context = {'form': form}
-
     if request.method == 'POST':
-        form = SignupForm(request.POST)
+        request_data = json.loads(request.body)
+        form = SignupForm(request_data)
+        
         if form.is_valid():
             form.save()
-            logout(request)
-            
-            if request.headers.get('Content-Type') == 'application/json':
-                return JsonResponse({'success': True, 'message': '회원가입이 완료되었습니다.'}, status = 200)
-            else:
-                return redirect(reverse('users:signin'))
+            return JsonResponse({'success': True, 'message': '회원가입이 완료되었습니다.'}, status=200)
         else:
-            if form.errors:
-                for value in form.errors.values():
-                    context['errors'] = value
-                if request.headers.get('Content-Type') == 'application/json':
-                    return JsonResponse({'success': False, 'message': '다시 시도해 주세요.', 'errors': value}, status = 400)
-            return render(request, 'signup.html', context)
-
-    return render(request, "signup.html", context)
-
+            errors = {}
+            for field, field_errors in form.errors.items():
+                errors[field] = field_errors.as_text()
+            return JsonResponse({'success': False, 'message': '다시 시도해 주세요.', 'errors': errors}, status=400)
+    return render(request, "signup.html")
+    
 def signin(request):
     if request.method == 'POST':
         email = request.POST.get('email')
