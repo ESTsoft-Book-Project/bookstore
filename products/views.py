@@ -1,3 +1,4 @@
+from django.http import JsonResponse
 from django.shortcuts import render
 from .forms import ProductForm
 from .models import Product
@@ -24,14 +25,16 @@ def create_product(request):
     return render(request, 'create_product.html', {'form': form})
 
 
-def delete_product(request):
-    if request.method == 'POST':
-        product_handle = request.POST.get('book_handle')
+def delete_product(request, handle):
+    if request.method == 'DELETE':
         try:
-            product = Product.objects.get(handle=product_handle)
-            product.delete()
+            product = Product.objects.get(handle=handle)
+            user = request.user
+            if product.user == user:
+                product.delete()
+                return JsonResponse({'result': True, 'redirect': '/products/book', 'statusCode': 200})
         except Product.DoesNotExist:
-            pass
+            return JsonResponse({'result': False, 'statusCode': 400})
     
     return redirect('book:book_list')
 
