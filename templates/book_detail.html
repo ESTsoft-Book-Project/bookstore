@@ -8,5 +8,12 @@
     <p>Handle: {{ book.handle }}</p>
     <p>Price: {{ book.price }}</p>
     <p>User: {{ book.user }}</p>
+
+    <!-- form action, url POST -->
+    <form action="/products/book/delete" method="post">
+        {% csrf_token %}
+        <input type="hidden" name="book_handle" value="{{ book.handle }}">
+        <button type="submit">Delete</button>
+    </form>
 </body>
 </html>

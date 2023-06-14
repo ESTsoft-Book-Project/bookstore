@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from .forms import ProductForm
 from .models import Product
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, redirect ,get_object_or_404
 
 def book_list(request):
     books = Product.objects.all()
@@ -22,4 +22,16 @@ def create_product(request):
         form = ProductForm()
     
     return render(request, 'create_product.html', {'form': form})
+
+
+def delete_product(request):
+    if request.method == 'POST':
+        product_handle = request.POST.get('book_handle')
+        try:
+            product = Product.objects.get(handle=product_handle)
+            product.delete()
+        except Product.DoesNotExist:
+            pass
+    
+    return redirect('book:book_list')
 
