@@ -15,7 +15,7 @@
             <ul class="navbar-nav ms-md-auto">
                 {% if request.user.is_authenticated %}
                 <li class="nav-link">
-                    <a href="{% url 'users:signout' %}" class="nav-link id="sign_out_btn">Sign Out</a>
+                    <a href="{% url 'users:signout' %}" class="nav-link" id="sign_out_btn">Sign Out</a>
                 </li>
                 <li class="nav-link">
                     <a href="{% url 'users:profile' %}" class="nav-link">Profile</a>
