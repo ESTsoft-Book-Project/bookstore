@@ -41,8 +41,6 @@ INSTALLED_APPS = [
     "users",
     "products",
     "purchases",
-    "crispy_forms",
-    "crispy_bootstrap5",
 ]
 
 MIDDLEWARE = [
