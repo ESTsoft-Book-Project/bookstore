@@ -45,9 +45,13 @@ def update_product(request, handle):
             product = form.save(commit=False)
             product.user = request.user
             product.save()
-            return JsonResponse({"message": "도서 정보가 수정되었습니다."}, status = 200)
+            return JsonResponse({"message": "도서 정보가 수정되었습니다.", 'redirect': '/products/book/'}, status = 200)
         else:
-            return JsonResponse({"message": form.errors.as_json()}, status = 400)
+            if Product.objects.filter(name=request_data["name"]).exists():
+                return JsonResponse({"message": "이미 존재하는 이름입니다.", 'redirect': ''}, status = 400)
+            if not isinstance(request_data["price"], int):
+                return JsonResponse({"message": "가격은 숫자로 입력해야 합니다.", 'redirect': ''}, status=400)
+            return JsonResponse({"message": form.errors.as_json(), 'redirect': ''}, status = 400)
     if not Product.objects.filter(handle=handle).exists():
         return JsonResponse({"message": "존재하지 않는 상품입니다."}, status = 404)
     else:

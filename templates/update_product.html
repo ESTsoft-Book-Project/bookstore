@@ -22,7 +22,7 @@
 <script>
     document.querySelector("#productUpdate").addEventListener("submit", function (e) {
         e.preventDefault();
-        fetch("/products/book/update/{{ book.handle }}/" , {
+        fetch("/products/book/update/{{ book.handle }}/", {
             method: "PATCH",
             headers: {
                 "Content-Type": "application/json",
@@ -33,14 +33,14 @@
                 "price": document.querySelector("#price").value,
             })
         })
-        .then(res => res.json())
-        .then(data => {
-            alert(data.message);
-            window.location.href = "/products/book/";
-        })
-        .catch(error => {
-            console.error("Error:", error);
-        })
+            .then(res => res.json())
+            .then(data => {
+                alert(data.message);
+                window.location.href = data.redirect;
+            })
+            .catch(error => {
+                console.error("Error:", error);
+            })
     });
 
     function getCookie(name) {
