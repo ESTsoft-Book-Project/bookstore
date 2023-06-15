@@ -35,6 +35,7 @@ def create_product(request):
 @login_required(login_url="/users/signin/")
 def update_product(request, handle):
     book = get_object_or_404(Product, handle=handle)
+    context = {"book": book}
 
     if request.method == "PATCH":
         request_data = json.loads(request.body)
@@ -51,4 +52,4 @@ def update_product(request, handle):
         return JsonResponse({"message": "존재하지 않는 상품입니다."}, status = 404)
     else:
         form = ProductForm(instance=book)
-        return render(request, "update_product.html")
+        return render(request, "update_product.html", context)

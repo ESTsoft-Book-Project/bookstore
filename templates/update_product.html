@@ -17,16 +17,12 @@
 
         <input type="submit" value="등록" />
         <a href="javascript:history.back()"><input type="button" value="취소"></a>
-
-        <div style="display: none;" id="bookHandle" data-handle="{{ book.handle|safe }}">{{ book.handle }}</div>
     </form>
 </body>
 <script>
     document.querySelector("#productUpdate").addEventListener("submit", function (e) {
         e.preventDefault();
-
-        const url = "/products/book/update/" + document.getElementById("bookHandle").dataset.handle;
-        fetch(url , {
+        fetch("/products/book/update/{{ book.handle }}/" , {
             method: "PATCH",
             headers: {
                 "Content-Type": "application/json",
