@@ -1,26 +1,72 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
-  <head>
+
+<head>
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Django Blog</title>
+    <title>{% block title %}{% endblock title %}</title>
+
+
     {% block headScripts%}{% endblock headScripts %}
-    <link
-      rel="stylesheet"
-      href="https://bootswatch.com/5/litera/bootstrap.min.css"
-    />
+    <link rel="stylesheet" href="https://bootswatch.com/5/litera/bootstrap.min.css" />
     {% comment %} update css_version upon changes in css files {% endcomment %}
     {% with css_version="2.1" %} {% block stylesheet %}{% endblock stylesheet%}
     {% endwith %}
-  </head>
-  <body>
-    {% include 'nav.html' %} 
-    {% block content %} 
+</head>
+
+<body>
+    {% include 'nav.html' %}
+
+    {% block content %}
         {% comment %} Here main magic goes! {% endcomment %}
     {% endblock content %}
+
+    <script>
+        const csrftoken = getCookie('csrftoken');
+
+        function getCookie(name) {
+            var cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                var cookies = document.cookie.split(';');
+                for (var i = 0; i < cookies.length; i++) {
+                    var cookie = cookies[i].trim();
+                    // Does this cookie string begin with the name we want?
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+        
+        {% if user.is_authenticated %}
+            document.querySelector('#sign_out_btn').addEventListener('click', signout);
+            function signout(e) {
+                e.preventDefault();
+                fetch('{% url "users:signout" %}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrftoken
+                    }
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        console.log(data);
+                        window.location.href = data.redirect;
+                    })
+                    .catch(error => console.log(error));
+            };
+        {% endif %}
+            
+    </script>
+
     <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
     <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
-  </body>
+
+</body>
+
 </html>
