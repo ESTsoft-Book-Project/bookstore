@@ -6,7 +6,7 @@
     font-family: Arial, sans-serif;
   }
 
-  .container {
+  .container-body {
     max-width: 400px;
     margin: 0 auto;
     padding: 20px;
@@ -14,12 +14,12 @@
     border-radius: 5px;
   }
 
-  .container h2 {
+  .container-body h2 {
     text-align: center;
   }
 
-  .container input[type="email"],
-  .container input[type="password"] {
+  .container-body input[type="email"],
+  .container-body input[type="password"] {
     width: 100%;
     padding: 12px 20px;
     margin: 8px 0;
@@ -29,7 +29,7 @@
     border-radius: 4px;
   }
 
-  .container button {
+  .container-body button {
     background-color: #4caf50;
     color: white;
     padding: 14px 20px;
@@ -39,7 +39,7 @@
     width: 100%;
   }
 
-  .container button:hover {
+  .container-body button:hover {
     background-color: #45a049;
   }
 </style>
@@ -53,7 +53,7 @@
       window.location.href = "/";
     </script>
   {% else %}
-    <div class="container">
+    <div class="container-body">
       <h2>로그인</h2>
       <form id="login_form" method="post">
         {% csrf_token %}
