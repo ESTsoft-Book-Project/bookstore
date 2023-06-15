@@ -4,6 +4,7 @@ from .models import Product
 from django.shortcuts import render, get_object_or_404
 from django.http import JsonResponse
 from slugify import slugify
+from .models import Product
 import json
 
 def book_list(request):

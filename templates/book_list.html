@@ -2,16 +2,45 @@
 <html>
 <head>
     <title>Book List</title>
+    <style>
+        table {
+            border-collapse: collapse;
+        }
+
+        th,
+        td {
+            border: 1px solid black;
+        }
+    </style>
 </head>
 <body>
     <h1>Book List</h1>
-    <ul>
-    {% if books %}
-        {% for book in books %}
-        <li><a href="{% url 'books:book_detail' handle=book.handle %}">{{ book.name }}</a></li>
-        {% include 'book_list.html' with book=book %}
-        {% endfor %}
-    {% endif %}
-    </ul>
+    <table>
+        <thead>
+            <tr>
+                <td>책 제목</td>
+                <td>가격</td>
+                <td>등록자</td>
+                <td>등록일</td>
+                <td>수정일</td>
+            </tr>
+        </thead>
+        <tbody>
+            {% for b in books %}
+            <tr>
+                <td><a href="{{ b.handle }}">{{ b.name }}</a></td>
+                <td>{{ b.price }}</td>
+                <td>{{ b.user }}</td>
+                <td>{{ b.created }}</td>
+                <td>{{ b.updated }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <a href="/products/book/create"><input type="button" value="책 등록"></a>
 </body>
+<script>
+    // 나는 여기에 들어갈 코드가 필요해.
+</script>
 </html>
