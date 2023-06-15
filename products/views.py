@@ -3,6 +3,7 @@ from .forms import ProductForm
 from .models import Product
 from django.shortcuts import render, get_object_or_404
 from django.http import JsonResponse
+from django.contrib.auth.decorators import login_required
 from slugify import slugify
 from .models import Product
 import json
@@ -17,6 +18,7 @@ def book_detail(request, handle):
     return render(request, 'book_detail.html', {'book': book})
 
 
+@login_required(login_url="/users/signin/")
 def create_product(request):
     if request.method == "POST":
         request_data = json.loads(request.body)
@@ -28,7 +30,6 @@ def create_product(request):
             product.save()
             return JsonResponse({"message": "신규 도서 등록이 완료되었습니다."})
         else:
-            print(form.errors.as_json())
-            return JsonResponse({"message": "오류가 발생했습니다."})
+            return JsonResponse({"message": form.errors.as_json()})
     else:
         return render(request, 'create_product.html')
