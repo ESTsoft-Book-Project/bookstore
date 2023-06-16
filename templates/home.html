@@ -1,57 +1,15 @@
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>bookstore</title>
-</head>
-<body>
+{% extends 'base.html' %}
+
+
+{% block title %}
+    HOME
+{% endblock title %}
+    
+
+{% block content %}
     {% if user.is_authenticated %}
     {{ user.nickname }}님 환영합니다
-    <a href="{% url 'users:signout' %}" id="sign_out_btn">Sign out</a>
-    
     {% else %}
     home
-
     {% endif %}
-    <script>
-        function getCookie(name) {
-        var cookieValue = null;
-        if (document.cookie && document.cookie !== '') {
-            var cookies = document.cookie.split(';');
-            for (var i = 0; i < cookies.length; i++) {
-                var cookie = cookies[i].trim();
-                // Does this cookie string begin with the name we want?
-                if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                    break;
-                }
-            }
-        }
-        return cookieValue;
-    }
-
-    const csrftoken = getCookie('csrftoken');
-
-
-        document.querySelector('#sign_out_btn').addEventListener('click', signout);
-        function signout(e) {
-            e.preventDefault();
-            fetch('{% url "users:signout" %}', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': csrftoken
-                }
-            })
-                .then(response => response.json())
-                .then(data => {
-                    console.log(data);
-                    window.location.href = data.redirect;
-                })
-                .catch(error => console.log(error));
-        };
-    </script>
-</body>
-</html>
+{% endblock content %}
