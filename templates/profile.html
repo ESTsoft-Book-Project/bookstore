@@ -1,14 +1,18 @@
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>프로필</title>
+{% extends 'base.html' %}
+
+
+{% block title %}
+    프로필
+{% endblock title %}
+    
+
+{% block headScripts %}
     <script src="https://code.jquery.com/jquery-3.7.0.js"
         integrity="sha256-JlqSTELeR4TLqP0OG9dxM7yDPqX1ox/HfgiSLBj8+kM=" crossorigin="anonymous"></script>
-</head>
-<body>
+{% endblock headScripts %}
+
+
+{% block content %}
     <form id="userUpdate" method="post">
         {% csrf_token %}
         <h1>프로필</h1>
@@ -64,21 +68,5 @@
                     });
             }
         });
-
-        function getCookie(name) {
-            var cookieValue = null;
-            if (document.cookie && document.cookie !== '') {
-                var cookies = document.cookie.split(';');
-                for (var i = 0; i < cookies.length; i++) {
-                    var cookie = cookies[i].trim();
-                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                        break;
-                    }
-                }
-            }
-            return cookieValue;
-        }
     </script>
-</body>
-</html>
+{% endblock content %}

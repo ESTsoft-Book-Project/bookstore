@@ -1,55 +1,59 @@
-<!DOCTYPE html>
-<head>
-    <title>책 등록</title>
-</head>
-<body>
-    <h1>책 등록</h1>
-    <form method="post" class="productCreate">
-        {% csrf_token %}
-        <label for="name">책 제목:</label>
-        <input type="text" id="name" name="name" required /><br /><br />
+{% extends 'base.html' %}
 
-        <label for="price">가격:</label>
-        <input type="text" id="price" name="price" required /><br /><br />
 
-        <label for="user">등록자:</label>
-        <input type="text" id="user" name="user" value="{{ user.nickname }}" readonly /><br /><br />
+{% block title %}
+책 등록
+{% endblock title %}
 
-        <input type="submit" value="등록" />
-    </form>
-</body>
+
+{% block content %}
+<h1>책 등록</h1>
+<form method="post" class="productCreate">
+  {% csrf_token %}
+  <label for="name">책 제목:</label>
+  <input type="text" id="name" name="name" required /><br /><br />
+
+  <label for="price">가격:</label>
+  <input type="text" id="price" name="price" required /><br /><br />
+
+  <label for="user">등록자:</label>
+  <input type="text" id="user" name="user" value="{{ user.nickname }}" readonly /><br /><br />
+
+  <input type="submit" value="등록" />
+</form>
+
 <script>
-    document.querySelector(".productCreate").addEventListener("submit", function (e) {
-        e.preventDefault();
-        fetch("/products/book/create/", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "X-CSRFToken": getCookie("csrftoken")
-            },
-            body: JSON.stringify({
-                "name": document.querySelector("#name").value,
-                "price": document.querySelector("#price").value,
-            })
-        })
-            .then(res => res.json())
-            .then(data => alert(data.message))
-            .then(window.location.href = "/products/book/");
-    });
+  document.querySelector(".productCreate").addEventListener("submit", function (e) {
+    e.preventDefault();
+    fetch("/products/book/create/", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": getCookie("csrftoken")
+      },
+      body: JSON.stringify({
+        "name": document.querySelector("#name").value,
+        "price": document.querySelector("#price").value,
+      })
+    })
+      .then(res => res.json())
+      .then(data => alert(data.message))
+      .then(window.location.href = "/products/book/");
+  });
 
-    function getCookie(name) {
-        var cookieValue = null;
-        if (document.cookie && document.cookie !== '') {
-            var cookies = document.cookie.split(';');
-            for (var i = 0; i < cookies.length; i++) {
-                var cookie = cookies[i].trim();
-                if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                    break;
-                }
-            }
+  function getCookie(name) {
+    var cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+      var cookies = document.cookie.split(';');
+      for (var i = 0; i < cookies.length; i++) {
+        var cookie = cookies[i].trim();
+        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
         }
-        return cookieValue;
+      }
     }
+    return cookieValue;
+  }
 </script>
-</html>
+{% endblock content %}

@@ -1,53 +1,59 @@
-<!DOCTYPE html>
-<html>
-  <head>
-    <title>로그인 페이지</title>
-    <style>
-      body {
-        font-family: Arial, sans-serif;
-      }
+{% extends 'base.html' %}
+{% block title %}로그인 페이지{% endblock title %}
+{% block stylesheet %}
+<style>
+  body {
+    font-family: Arial, sans-serif;
+  }
 
-      .container {
-        max-width: 400px;
-        margin: 0 auto;
-        padding: 20px;
-        border: 1px solid #ccc;
-        border-radius: 5px;
-      }
+  .container-body {
+    max-width: 400px;
+    margin: 0 auto;
+    padding: 20px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+  }
 
-      .container h2 {
-        text-align: center;
-      }
+  .container-body h2 {
+    text-align: center;
+  }
 
-      .container input[type="email"],
-      .container input[type="password"] {
-        width: 100%;
-        padding: 12px 20px;
-        margin: 8px 0;
-        display: inline-block;
-        border: 1px solid #ccc;
-        box-sizing: border-box;
-        border-radius: 4px;
-      }
+  .container-body input[type="email"],
+  .container-body input[type="password"] {
+    width: 100%;
+    padding: 12px 20px;
+    margin: 8px 0;
+    display: inline-block;
+    border: 1px solid #ccc;
+    box-sizing: border-box;
+    border-radius: 4px;
+  }
 
-      .container button {
-        background-color: #4caf50;
-        color: white;
-        padding: 14px 20px;
-        margin: 8px 0;
-        border: none;
-        cursor: pointer;
-        width: 100%;
-      }
+  .container-body button {
+    background-color: #4caf50;
+    color: white;
+    padding: 14px 20px;
+    margin: 8px 0;
+    border: none;
+    cursor: pointer;
+    width: 100%;
+  }
 
-      .container button:hover {
-        background-color: #45a049;
-      }
-    </style>
-  </head>
-  <body>
-    {% if not user.is_authenticated %}
-    <div class="container">
+  .container-body button:hover {
+    background-color: #45a049;
+  }
+</style>
+{% endblock stylesheet %}
+
+
+{% block content %}
+  
+  {% if user.is_authenticated %}
+    <script>
+      window.location.href = "/";
+    </script>
+  {% else %}
+    <div class="container-body">
       <h2>로그인</h2>
       <form id="login_form" method="post">
         {% csrf_token %}
@@ -60,32 +66,9 @@
         <button type="submit">로그인</button>
       </form>
     </div>
-    {% else %}
+
     <script>
-        window.location.href = "/";
-    </script>
-    {% endif %}
-  </body>
-  <script>
-    function getCookie(name) {
-        var cookieValue = null;
-        if (document.cookie && document.cookie !== '') {
-            var cookies = document.cookie.split(';');
-            for (var i = 0; i < cookies.length; i++) {
-                var cookie = cookies[i].trim();
-                // Does this cookie string begin with the name we want?
-                if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                    break;
-                }
-            }
-        }
-        return cookieValue;
-    }
-
-    const csrftoken = getCookie('csrftoken');
-
-    document.getElementById('login_form').addEventListener('submit', function (e) {
+      document.getElementById('login_form').addEventListener('submit', function (e) {
         e.preventDefault();
         var email = document.getElementById('email').value;
         var password = document.getElementById('password').value;
@@ -95,26 +78,29 @@
         formData.append('password', password);
 
         fetch('{% url "users:signin" %}', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-                'X-CSRFToken': csrftoken
-            },
-            body: formData.toString()
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRFToken': csrftoken
+          },
+          body: formData.toString()
         })
-            .then(response => response.json())
-            .then(data => {
-              console.log(data);
-              console.log(data.status);
-                if (data.statusCode == 200) {
-                    window.location.href = data.redirect;
-                } else {
-                    alert('아이디 또는 비밀번호가 맞지 않습니다');
-                }
-            })
-            .catch(
-                error => console.log(error)
-            );
-    });
-  </script>
-</html>
+          .then(response => response.json())
+          .then(data => {
+            console.log(data);
+            console.log(data.status);
+            if (data.statusCode == 200) {
+              window.location.href = data.redirect;
+            } else {
+              alert('아이디 또는 비밀번호가 맞지 않습니다');
+            }
+          })
+          .catch(
+            error => console.log(error)
+          );
+      });
+    </script> 
+  {% endif %}
+
+  
+{% endblock content %}
