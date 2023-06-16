@@ -1,7 +1,8 @@
+from django.http import JsonResponse
 from django.shortcuts import render
 from .forms import ProductForm
 from .models import Product
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, redirect ,get_object_or_404
 from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
 from slugify import slugify
@@ -57,3 +58,19 @@ def update_product(request, handle):
     else:
         form = ProductForm(instance=book)
         return render(request, "update_product.html", context)
+
+def delete_product(request, handle):
+    book = Product.objects.get(handle=handle)
+    user = request.user
+    
+    if request.method == 'DELETE':    
+        if not user.is_authenticated:
+            return JsonResponse({'result': False, 'redirect': '/users/signin/', 'statusCode': 401})
+        
+        if book.user == user:
+            book.delete()
+            return JsonResponse({'result': True, 'redirect': '/products/book', 'statusCode': 200})
+        return JsonResponse({'result': False, 'statusCode': 403})
+    
+    return render(request, 'book_detail.html', {'book': book})
+
