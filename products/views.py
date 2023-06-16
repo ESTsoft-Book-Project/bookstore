@@ -27,7 +27,7 @@ def create_product(request):
             product = form.save(commit=False)
             product.user = request.user
             product.save()
-            return JsonResponse({"message": "신규 도서 등록이 완료되었습니다."})
+            return JsonResponse({"message": "신규 도서 등록이 완료되었습니다.", "redirect_url": "/products/book/"})
         else:
             return JsonResponse({"message": form.errors.as_json()})
     else:

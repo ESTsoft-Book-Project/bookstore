@@ -37,8 +37,10 @@
       })
     })
       .then(res => res.json())
-      .then(data => alert(data.message))
-      .then(window.location.href = "/products/book/");
+      .then(data => {
+        alert(data.message)
+        window.location.href = data.redirect_url
+      })
   });
 
   function getCookie(name) {
