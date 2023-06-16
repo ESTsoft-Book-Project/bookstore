@@ -9,36 +9,33 @@
     <p>Price: {{ book.price }}</p>
     <p>User: {{ book.user }}</p>
 
-    <form id="delete_form" method="post">
-        <input type="hidden" name="book_handle" value="{{ book.value }}">
-        <button type="submit">Delete</button>
-    </form>
+    <button type="submit" id="deleteBtn">Delete</button>
 
     <script>
 
         function getCookie(name) {
-        var cookieValue = null;
-        if (document.cookie && document.cookie !== '') {
-            var cookies = document.cookie.split(';');
-            for (var i = 0; i < cookies.length; i++) {
-                var cookie = cookies[i].trim();
-                // Does this cookie string begin with the name we want?
-                if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                    break;
+            var cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                var cookies = document.cookie.split(';');
+                for (var i = 0; i < cookies.length; i++) {
+                    var cookie = cookies[i].trim();
+                    // Does this cookie string begin with the name we want?
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
                 }
             }
-        }
             return cookieValue;
         }
 
         const csrftoken = getCookie('csrftoken');
 
-        document.getElementById('delete_form').addEventListener('submit', function (e) {
+        document.getElementById('deleteBtn').addEventListener('click', function (e) {
         e.preventDefault();
         
         const url = '/products/book/delete/'+'{{ book.handle }}';
-        console.log(url)
+        // console.log(url)
         fetch(url , {
             method: 'DELETE',
             headers: {
@@ -48,8 +45,14 @@
             .then(response => response.json())
             .then(data => {
                 if (data.statusCode == 200) {
+                    // 삭제 성공, book_list로 redirect
                     window.location.href = data.redirect;
-                } else {
+                }
+                else if(data.statusCode == 401){
+                    // 로그인 화면으로 redirect
+                    window.location.href = data.redirect;
+                }
+                else if(data.statusCode == 403){
                     alert('상품 삭제 권한이 없습니다');
                 }
             })

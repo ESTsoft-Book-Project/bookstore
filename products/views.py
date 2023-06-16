@@ -35,17 +35,18 @@ def create_product(request):
     else:
         return render(request, 'create_product.html')
 
-        
 def delete_product(request, handle):
-    if request.method == 'DELETE':
-        try:
-            product = Product.objects.get(handle=handle)
-            user = request.user
-            if product.user == user:
-                product.delete()
-                return JsonResponse({'result': True, 'redirect': '/products/book', 'statusCode': 200})
-        except Product.DoesNotExist:
-            return JsonResponse({'result': False, 'statusCode': 400})
+    book = Product.objects.get(handle=handle)
+    user = request.user
     
-    return redirect('book:book_list')
+    if request.method == 'DELETE':    
+        if not user.is_authenticated:
+            return JsonResponse({'result': False, 'redirect': '/users/signin/', 'statusCode': 401})
+        
+        if book.user == user:
+            book.delete()
+            return JsonResponse({'result': True, 'redirect': '/products/book', 'statusCode': 200})
+        return JsonResponse({'result': False, 'statusCode': 403})
+    
+    return render(request, 'book_detail.html', {'book': book})
 
