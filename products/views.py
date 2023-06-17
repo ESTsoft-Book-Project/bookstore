@@ -2,11 +2,14 @@ from django.http import JsonResponse
 from django.shortcuts import render
 from .forms import ProductForm
 from .models import Product
-from django.shortcuts import render, redirect ,get_object_or_404
+from django.shortcuts import render ,get_object_or_404
 from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
 from slugify import slugify
 from .models import Product
+from .serializers import ProductSerializer
+from rest_framework.decorators import api_view
+from django.contrib.auth import get_user
 import json
 
 def book_list(request):
@@ -17,21 +20,20 @@ def book_detail(request, handle):
     book = get_object_or_404(Product, handle=handle)
     return render(request, 'book_detail.html', {'book': book})
 
+@api_view(["GET", "POST"])
 @login_required(login_url="/users/signin/")
 def create_product(request):
-    if request.method == "POST":
-        request_data = json.loads(request.body)
-        request_data["handle"] = slugify(request_data["name"])
-        form = ProductForm(request_data)
-        if form.is_valid():
-            product = form.save(commit=False)
-            product.user = request.user
-            product.save()
-            return JsonResponse({"message": "신규 도서 등록이 완료되었습니다.", "redirect_url": "/products/book/"})
-        else:
-            return JsonResponse({"message": form.errors.as_json()})
-    else:
+    if request.method == "GET":
         return render(request, 'create_product.html')
+    elif request.method == "POST":
+        request_data = json.loads(json.dumps(request.data))
+        request_data["handle"] = slugify(request_data["name"])
+        request_data["user"] = request.user.pk
+        serializer = ProductSerializer(data = request_data)
+        if serializer.is_valid():
+            serializer.save()
+            return JsonResponse({"message": "신규 도서 등록이 완료되었습니다.", "redirect_url": "/products/book/"})
+        return JsonResponse({"message": serializer.error_messages})
     
 @login_required(login_url="/users/signin/")
 def update_product(request, handle):
