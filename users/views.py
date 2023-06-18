@@ -7,37 +7,43 @@ from .forms import SignupForm
 from django.contrib.auth import update_session_auth_hash
 from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from rest_framework import status
+from .serializers import UserSerializer
 import json
 from django.views.decorators.csrf import csrf_exempt
 
 @csrf_exempt
+@api_view(['GET', 'POST'])
 def signup(request):
     if request.method == 'POST':
-        request_data = json.loads(request.body)
-        form = SignupForm(request_data)
-        
-        if form.is_valid():
-            form.save()
-            return JsonResponse({'success': True, 'message': '회원가입이 완료되었습니다.', 'redirect': reverse('users:signin')}, status=200)
+        serializer = UserSerializer(data=request.data)        
+        if serializer.is_valid():
+            serializer.save()
+            return Response({'success': True, 'message': '회원가입이 완료되었습니다.', 'redirect': reverse('users:signin')})        
         else:
-            errors = {}
-            for field, field_errors in form.errors.items():
-                errors[field] = field_errors.as_text()
-            return JsonResponse({'success': False, 'message': '다시 시도해 주세요.', 'errors': errors}, status=400)
-    return render(request, "signup.html")
+            errors = serializer.errors
+            return Response({'success': False, 'message': '다시 시도해 주세요.', 'errors': errors},)
     
+    elif request.method == 'GET':
+        return render(request, 'signup.html')
+       
+@api_view(['POST', 'GET'])
 def signin(request):
     if request.method == 'POST':
-        email = request.POST.get('email')
-        password = request.POST.get('password')
-        user = authenticate(username=email, password=password)
-        if user:
-            login(request, user)
-            return JsonResponse({'result': True, 'redirect': '', 'statusCode': 200})
-        else:
-            return JsonResponse({'result': False, 'statusCode': 400})
+        email = request.data.get('email')
+        password = request.data.get('password')
+        user = authenticate(request, username=email, password=password)
         
-    return render(request,'signin.html')
+        if user is not None:
+            login(request, user)
+            return Response({'result': True, 'redirect': ''})
+        else:
+            return Response({'result': False})
+    
+    elif request.method == 'GET':
+        return render(request, 'signin.html')
 
 
 @login_required(login_url="/users/signin/")
@@ -62,6 +68,11 @@ def delete_user(request):
     logout(request)
     return JsonResponse({"message": "회원 탈퇴가 완료되었습니다."})
 
+
+@api_view(["POST"])
 def signout(request):
-    logout(request)
-    return JsonResponse({'result': True, 'redirect': '', 'statusCode': 200})
+    if request.method == 'POST':
+        logout(request)
+        return Response({'result': True, 'redirect': ''})
+    else:
+        return Response({'result': False, 'message': '잘못된 요청입니다.'})
