@@ -5,7 +5,6 @@
 책 등록
 {% endblock title %}
 
-
 {% block content %}
 <h1>책 등록</h1>
 <form method="post" class="productCreate">
@@ -16,6 +15,9 @@
   <label for="price">가격:</label>
   <input type="text" id="price" name="price" required /><br /><br />
 
+  <label for="image">책 이미지:</label>
+  <input type="file" id="image" name="image" accept="image/*" required /><br /><br />
+
   <label for="user">등록자:</label>
   <input type="text" id="user" name="user" value="{{ user.nickname }}" readonly /><br /><br />
 
@@ -24,38 +26,26 @@
 
 <script>
   document.querySelector(".productCreate").addEventListener("submit", function (e) {
-    e.preventDefault();
-    fetch("/products/book/create/", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-CSRFToken": getCookie("csrftoken")
-      },
-      body: JSON.stringify({
-        "name": document.querySelector("#name").value,
-        "price": document.querySelector("#price").value,
-      })
-    })
-      .then(res => res.json())
-      .then(data => {
-        alert(data.message)
-        window.location.href = data.redirect_url
-      })
-  });
+  e.preventDefault();
 
-  function getCookie(name) {
-    var cookieValue = null;
-    if (document.cookie && document.cookie !== '') {
-      var cookies = document.cookie.split(';');
-      for (var i = 0; i < cookies.length; i++) {
-        var cookie = cookies[i].trim();
-        if (cookie.substring(0, name.length + 1) === (name + '=')) {
-          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-          break;
-        }
-      }
-    }
-    return cookieValue;
-  }
+  const form = document.querySelector(".productCreate");
+  const formData = new FormData(form);
+  formData.append("name", document.querySelector("#name").value);
+  formData.append("price", document.querySelector("#price").value);
+  formData.append("image", document.querySelector("#image").files[0]);
+
+  fetch("/products/book/create/", {
+    method: "POST",
+    headers: {
+      "X-CSRFToken": getCookie("csrftoken")
+    },
+    body: formData
+  })
+    .then(res => res.json())
+    .then(data => {
+      alert(data.message);
+      window.location.href = data.redirect_url;
+    })
+});
 </script>
 {% endblock content %}
