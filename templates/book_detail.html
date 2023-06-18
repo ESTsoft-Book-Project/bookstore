@@ -7,6 +7,7 @@
   <p>Handle: {{ book.handle }}</p>
   <p>Price: {{ book.price }}</p>
   <p>User: {{ book.user }}</p>
+  <button type="submit" id="purchaseBtn">구매</button>
 
   <a href="/products/book/update/{{ book.handle }}/"><input type="button" value="수정"></a>
   <button type="submit" id="deleteBtn">Delete</button>
@@ -46,11 +47,9 @@
             .then(response => response.json())
             .then(data => {
                 if (data.statusCode == 200) {
-                    // 삭제 성공, book_list로 redirect
                     window.location.href = data.redirect;
                 }
                 else if(data.statusCode == 401){
-                    // 로그인 화면으로 redirect
                     window.location.href = data.redirect;
                 }
                 else if(data.statusCode == 403){
@@ -61,6 +60,35 @@
                 error => console.log(error)
             );
     });
+
+
+    document.getElementById('purchaseBtn').addEventListener('click', function () {
+    const handle = '{{ book.handle }}';
+    const url = `/purchases/start/`;
+    fetch(url, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': csrftoken,
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ handle: handle })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.checkout_url) {
+            window.location.href = data.checkout_url;
+        } else if (data.statusCode == 400) {
+            alert('잘못된 요청입니다');
+        } else if (data.statusCode == 401) {
+            alert('로그인이 필요합니다');
+        } else if (data.statusCode == 403) {
+            alert('구매할 수 없는 상품입니다');
+        }
+    })
+    .catch(error => console.log(error));
+});
+
+
     </script>
 {% endblock content %}
 
