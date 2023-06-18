@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2 class="mb-4 text-2xl tracking-tight font-extrabold text-gray-900 dark:text-white text-center">MY ORDERS</h2>
+  {% if purchases %}
+    <table class="border-collapse mx-auto">
+      <thead>
+        <tr>
+          <th class="border border-gray-300 px-4 py-2">Product Name</th>
+          <th class="border border-gray-300 px-4 py-2">Price</th>
+          <th class="border border-gray-300 px-4 py-2">Completed</th>
+          <th class="border border-gray-300 px-4 py-2">Order Cancel</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for purchase in purchases reversed %}
+          <tr>
+            <td class="border border-gray-300 px-4 py-2">{{ purchase.product.name }}</td>
+            <td class="border border-gray-300 px-4 py-2">${{ purchase.stripe_price }}</td>
+            <td class="border border-gray-300 px-4 py-2">{% if purchase.completed %}Yes{% else %}No{% endif %}</td>
+            <td class="border border-gray-300 px-4 py-2">
+              
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p class="text-center">No orders found.</p>
+  {% endif %}
+{% endblock %}
