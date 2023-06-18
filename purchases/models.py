@@ -8,3 +8,5 @@ class Purchase(models.Model):
     timestamp = models.DateTimeField(auto_now_add=True)
     completed = models.BooleanField(default=False)
     
+    stripe_checkout_session_id = models.CharField(max_length=220, blank=True, null=True)
+    stripe_price = models.IntegerField(default=0)
