@@ -17,22 +17,36 @@ def book_detail(request, handle):
     book = get_object_or_404(Product, handle=handle)
     return render(request, 'book_detail.html', {'book': book})
 
+from django.core.files.uploadedfile import InMemoryUploadedFile
+from io import BytesIO
+
 @login_required(login_url="/users/signin/")
 def create_product(request):
     if request.method == "POST":
-        request_data = json.loads(request.body)
-        request_data["handle"] = slugify(request_data["name"])
-        form = ProductForm(request_data)
+        form = ProductForm(request.POST, request.FILES)
+        image_file = request.FILES.get('image')
+
         if form.is_valid():
             product = form.save(commit=False)
             product.user = request.user
-            product.save()
+
+            handle = slugify(product.name)
+            num = 1
+            while Product.objects.filter(handle=handle).exists():
+                handle = slugify(f"{product.name}-{num}")
+                num += 1
+            product.handle = handle
+            
+            image_file = request.FILES.get('image')
+            if image_file:
+                product.image = image_file
+            product.save() 
             return JsonResponse({"message": "신규 도서 등록이 완료되었습니다.", "redirect_url": "/products/book/"})
         else:
             return JsonResponse({"message": form.errors.as_json()})
     else:
         return render(request, 'create_product.html')
-    
+
 @login_required(login_url="/users/signin/")
 def update_product(request, handle):
     book = get_object_or_404(Product, handle=handle)
