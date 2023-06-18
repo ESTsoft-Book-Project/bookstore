@@ -42,13 +42,16 @@ def create_product(request):
 @login_required(login_url="/users/signin/")
 def update_product(request, handle):
     if request.method == "PATCH":
+        original_data = get_object_or_404(Product, handle=handle)
         request_data = json.loads(json.dumps(request.data))
         request_data["handle"] = slugify(f"{uuid.uuid4()}")
-        serializer = ProductSerializer(get_object_or_404(Product, handle=handle), data = request_data, partial = True)
-        if serializer.is_valid():
+        serializer = ProductSerializer(original_data, data = request_data, partial = True)
+        if serializer.is_valid() and (request.user == original_data.user):
             serializer.save()
             return JsonResponse({"message": "도서 정보가 수정되었습니다.", 'redirect': '/products/book/'}, status = 200)
         else:
+            if request.user != original_data.user:
+                return JsonResponse({"message": "이 상품에 대한 수정 권한이 없습니다.", "redirect": ""}, status = 400)
             if Product.objects.filter(name=request_data["handle"]).exists():
                 return JsonResponse({"message": "이미 존재하는 상품입니다.", 'redirect': ''}, status = 400)
             if not isinstance(request_data["price"], int):
