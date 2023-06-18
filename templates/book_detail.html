@@ -3,41 +3,41 @@
 {% block title %}Book Detail{% endblock title%}
 
 {% block content %}
-  <h1>{{ book.name }}</h1>
-  <p>Handle: {{ book.handle }}</p>
-  <p>Price: {{ book.price }}</p>
-  <p>User: {{ book.user }}</p>
+<h1>{{ book.name }}</h1>
+<p>Handle: {{ book.handle }}</p>
+<p>Price: {{ book.price }}</p>
+<p>User: {{ book.user.nickname }}({{ book.user.email }})</p>
 
-  <a href="/products/book/update/{{ book.handle }}/"><input type="button" value="수정"></a>
-  <button type="submit" id="deleteBtn">Delete</button>
-  <a href="/products/book/"><input type="button" value="목록"></a>
-  
-    <script>
+<a href="/products/book/update/{{ book.handle }}/"><input type="button" value="수정"></a>
+<button type="submit" id="deleteBtn">Delete</button>
+<a href="/products/book/"><input type="button" value="목록"></a>
 
-        function getCookie(name) {
-            var cookieValue = null;
-            if (document.cookie && document.cookie !== '') {
-                var cookies = document.cookie.split(';');
-                for (var i = 0; i < cookies.length; i++) {
-                    var cookie = cookies[i].trim();
-                    // Does this cookie string begin with the name we want?
-                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                        break;
-                    }
+<script>
+
+    function getCookie(name) {
+        var cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            var cookies = document.cookie.split(';');
+            for (var i = 0; i < cookies.length; i++) {
+                var cookie = cookies[i].trim();
+                // Does this cookie string begin with the name we want?
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
                 }
             }
-            return cookieValue;
         }
+        return cookieValue;
+    }
 
-        const csrftoken = getCookie('csrftoken');
+    const csrftoken = getCookie('csrftoken');
 
-        document.getElementById('deleteBtn').addEventListener('click', function (e) {
+    document.getElementById('deleteBtn').addEventListener('click', function (e) {
         e.preventDefault();
-        
-        const url = '/products/book/delete/'+'{{ book.handle }}';
+
+        const url = '/products/book/delete/' + '{{ book.handle }}';
         // console.log(url)
-        fetch(url , {
+        fetch(url, {
             method: 'DELETE',
             headers: {
                 'X-CSRFToken': csrftoken
@@ -49,11 +49,11 @@
                     // 삭제 성공, book_list로 redirect
                     window.location.href = data.redirect;
                 }
-                else if(data.statusCode == 401){
+                else if (data.statusCode == 401) {
                     // 로그인 화면으로 redirect
                     window.location.href = data.redirect;
                 }
-                else if(data.statusCode == 403){
+                else if (data.statusCode == 403) {
                     alert('상품 삭제 권한이 없습니다');
                 }
             })
@@ -61,6 +61,5 @@
                 error => console.log(error)
             );
     });
-    </script>
+</script>
 {% endblock content %}
-

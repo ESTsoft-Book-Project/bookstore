@@ -15,34 +15,34 @@
 
 
 {% block content %}
-  <h1>Book List</h1>
-  <table>
-    <thead>
-      <tr>
-        <td>책 제목</td>
-        <td>가격</td>
-        <td>등록자</td>
-        <td>등록일</td>
-        <td>수정일</td>
-      </tr>
-    </thead>
-    <tbody>
-      {% for b in books %}
-      <tr>
-        <td><a href="{{ b.handle }}">{{ b.name }}</a></td>
-        <td>{{ b.price }}</td>
-        <td>{{ b.user }}</td>
-        <td>{{ b.created }}</td>
-        <td>{{ b.updated }}</td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
+<h1>Book List</h1>
+<table>
+  <thead>
+    <tr>
+      <td>책 제목</td>
+      <td>가격</td>
+      <td>등록자</td>
+      <td>등록일</td>
+      <td>수정일</td>
+    </tr>
+  </thead>
+  <tbody>
+    {% for b in books %}
+    <tr>
+      <td><a href="{{ b.handle }}">{{ b.name }}</a></td>
+      <td>{{ b.price }}</td>
+      <td>{{ b.user.nickname }} ({{ b.user.email }})</td>
+      <td>{{ b.created }}</td>
+      <td>{{ b.updated }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
 
-  <a href="/products/book/create"><input type="button" value="책 등록"></a>
+<a href="/products/book/create"><input type="button" value="책 등록"></a>
 
 {% endblock content %}
-  
+
 <body></body>
 
 </html>
