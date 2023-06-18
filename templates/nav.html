@@ -19,6 +19,9 @@
         <li class="nav-link">
           <a href="{% url 'users:profile' %}" class="nav-link">Profile</a>
         </li>
+        <li class="nav-link">
+          <a href="{% url 'purchases:orders' %}" class="nav-link">Order</a>
+        </li>
         {% else %}
         <li class="nav-link">
           <a href="{% url 'users:signin' %}" class="nav-link">Sign In</a>
