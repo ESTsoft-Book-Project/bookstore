@@ -28,24 +28,38 @@
   document.querySelector(".productCreate").addEventListener("submit", function (e) {
   e.preventDefault();
 
-  const form = document.querySelector(".productCreate");
-  const formData = new FormData(form);
-  formData.append("name", document.querySelector("#name").value);
-  formData.append("price", document.querySelector("#price").value);
-  formData.append("image", document.querySelector("#image").files[0]);
+  const fileInput = document.querySelector("#image");
+  const imageFile = fileInput.files[0];
 
-  fetch("/products/book/create/", {
-    method: "POST",
-    headers: {
-      "X-CSRFToken": getCookie("csrftoken")
-    },
-    body: formData
-  })
-    .then(res => res.json())
-    .then(data => {
-      alert(data.message);
-      window.location.href = data.redirect_url;
+  const reader = new FileReader();
+  reader.onloadend = function () {
+    const imageData = reader.result.split(",")[1];
+
+    const data = {
+      name: document.querySelector("#name").value,
+      price: document.querySelector("#price").value,
+      image: imageData
+    };
+
+    const csrfToken = getCookie("csrftoken");
+
+    fetch("/products/book/create/", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": csrfToken
+      },
+      body: JSON.stringify(data)
     })
+      .then(res => res.json())
+      .then(data => {
+        alert(data.message);
+        window.location.href = data.redirect_url;
+      });
+  };
+
+  reader.readAsDataURL(imageFile);
 });
+
 </script>
 {% endblock content %}
