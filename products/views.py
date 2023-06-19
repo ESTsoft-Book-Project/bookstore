@@ -8,6 +8,8 @@ from django.contrib.auth.decorators import login_required
 from slugify import slugify
 from .models import Product
 import json
+import base64
+from django.core.files.base import ContentFile
 
 def book_list(request):
     books = Product.objects.all()
@@ -17,30 +19,27 @@ def book_detail(request, handle):
     book = get_object_or_404(Product, handle=handle)
     return render(request, 'book_detail.html', {'book': book})
 
-from django.core.files.uploadedfile import InMemoryUploadedFile
-from io import BytesIO
-
 @login_required(login_url="/users/signin/")
 def create_product(request):
     if request.method == "POST":
-        form = ProductForm(request.POST, request.FILES)
-        image_file = request.FILES.get('image')
+        request_data = json.loads(request.body)
+        image_data = request_data.get('image')
+        handle = slugify(request_data["name"])
+        
+        num = 1
+        while Product.objects.filter(handle=handle).exists():
+            handle = f'{handle}-{num}'
+            num += 1
 
+        form = ProductForm(request_data)
         if form.is_valid():
             product = form.save(commit=False)
-            product.user = request.user
-
-            handle = slugify(product.name)
-            num = 1
-            while Product.objects.filter(handle=handle).exists():
-                handle = slugify(f"{product.name}-{num}")
-                num += 1
+            if image_data:
+                image_data = base64.b64decode(image_data)
+                product.image.save(handle, ContentFile(image_data), save=False)
             product.handle = handle
-            
-            image_file = request.FILES.get('image')
-            if image_file:
-                product.image = image_file
-            product.save() 
+            product.user = request.user
+            product.save()
             return JsonResponse({"message": "신규 도서 등록이 완료되었습니다.", "redirect_url": "/products/book/"})
         else:
             return JsonResponse({"message": form.errors.as_json()})
