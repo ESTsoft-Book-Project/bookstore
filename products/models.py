@@ -3,7 +3,7 @@ from django.db import models
 import stripe
 from django.urls import reverse
 class Product(models.Model):
-    name = models.CharField(max_length=255, unique=True)
+    name = models.CharField(max_length=255)
     handle = models.SlugField(max_length=255, unique=True)
     price = models.DecimalField(max_digits=8, decimal_places=2)
     image = models.ImageField(upload_to='product_images/', blank=True, null=True)
