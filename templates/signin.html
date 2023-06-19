@@ -72,11 +72,11 @@
         e.preventDefault();
         var email = document.getElementById('email').value;
         var password = document.getElementById('password').value;
-
+    
         const formData = new URLSearchParams();
         formData.append('email', email);
         formData.append('password', password);
-
+    
         fetch('{% url "users:signin" %}', {
           method: 'POST',
           headers: {
@@ -89,15 +89,13 @@
           .then(data => {
             console.log(data);
             console.log(data.status);
-            if (data.statusCode == 200) {
+            if (data.result === true) {
               window.location.href = data.redirect;
             } else {
-              alert('아이디 또는 비밀번호가 맞지 않습니다');
+              alert('아이디 또는 비밀번호가 맞지 않습니다.');
             }
           })
-          .catch(
-            error => console.log(error)
-          );
+          .catch(error => console.log(error));
       });
     </script> 
   {% endif %}

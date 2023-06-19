@@ -15,33 +15,33 @@ import json
 from django.views.decorators.csrf import csrf_exempt
 
 @csrf_exempt
-@api_view(['GET', 'POST'])
+@api_view(['POST', 'GET'])
 def signup(request):
     if request.method == 'POST':
-        serializer = UserSerializer(data=request.data)        
-        if serializer.is_valid():
+        serializer = UserSerializer(data=request.data)
+        if serializer.is_valid(raise_exception=True):
             serializer.save()
-            return Response({'success': True, 'message': '회원가입이 완료되었습니다.', 'redirect': reverse('users:signin')})        
+            return Response({'success': True, 'message': '회원가입이 완료되었습니다.', 'redirect': '/users/signin/'})
         else:
-            errors = serializer.errors
-            return Response({'success': False, 'message': '다시 시도해 주세요.', 'errors': errors},)
+            return Response({'success': False, 'message': '회원가입에 실패했습니다.', 'errors': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
     
     elif request.method == 'GET':
         return render(request, 'signup.html')
-       
+    
+@csrf_exempt
 @api_view(['POST', 'GET'])
 def signin(request):
     if request.method == 'POST':
         email = request.data.get('email')
         password = request.data.get('password')
         user = authenticate(request, username=email, password=password)
-        
+
         if user is not None:
             login(request, user)
-            return Response({'result': True, 'redirect': ''})
+            return Response({'result': True, 'redirect': '/users/signin/'})
         else:
-            return Response({'result': False})
-    
+            return Response({'result': False, 'message': '이메일 또는 비밀번호가 잘못되었습니다.'})
+
     elif request.method == 'GET':
         return render(request, 'signin.html')
 
@@ -73,6 +73,6 @@ def delete_user(request):
 def signout(request):
     if request.method == 'POST':
         logout(request)
-        return Response({'result': True, 'redirect': ''})
+        return Response({'result': True, 'redirect': '/users/signin/'})
     else:
         return Response({'result': False, 'message': '잘못된 요청입니다.'})
