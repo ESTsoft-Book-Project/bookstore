@@ -28,9 +28,9 @@
     <tbody>
         {% for i in items %}
         <tr>
-            <td id="{{ i.product }}">{{ i.product }}</td>
-            <td><input id="{{ i.product }}-quantity" type="number" value="{{ i.quantity }}"></td>
-            <td><button id="{{ i.product }}-deleteBtn" type="submit">삭제</button></td>
+            <td id="{{ i.product.handle }}">{{ i.product }}</td>
+            <td><input id="{{ i.product.handle }}-quantity" type="number" value="{{ i.quantity }}"></td>
+            <td><button id="{{ i.product.handle }}-deleteBtn" type="submit">삭제</button></td>
         </tr>
         {% endfor %}
     </tbody>
@@ -41,7 +41,7 @@
 
 {% for i in items %}
 <script>
-    document.querySelector('#{{ i.product }}-quantity').addEventListener('input', function (e) {
+    document.querySelector('#{{ i.product.handle }}-quantity').addEventListener('input', function (e) {
         e.preventDefault();
 
         fetch('update/', {
@@ -51,8 +51,8 @@
                 'X-CSRFToken': csrftoken
             },
             body: JSON.stringify({
-                product: '{{ i.product }}',
-                quantity: document.querySelector('#{{ i.product }}-quantity').value
+                product: '{{ i.product.handle }}',
+                quantity: document.querySelector('#{{ i.product.handle }}-quantity').value
             })
         })
             .then(res => res.json())
@@ -66,7 +66,7 @@
             });
     });
 
-    document.querySelector('#{{ i.product }}-deleteBtn').addEventListener('click', function (e) {
+    document.querySelector('#{{ i.product.handle }}-deleteBtn').addEventListener('click', function (e) {
         e.preventDefault();
 
         fetch('delete/', {
@@ -76,7 +76,7 @@
                 'X-CSRFToken': csrftoken
             },
             body: JSON.stringify({
-                product: '{{ i.product }}',
+                product: '{{ i.product.handle }}',
             })
         })
             .then(res => res.json())

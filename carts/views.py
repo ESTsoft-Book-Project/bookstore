@@ -33,14 +33,16 @@ def cart_add(request):
 
 @login_required(login_url="/users/signin")
 def cart_list(request):
-    items = Cart.objects.filter(user = request.user)
-    return render(request, "cart_list.html", {"items": items})
+    if request.method == "GET":
+        items = Cart.objects.filter(user = request.user)
+        return render(request, "cart_list.html", {"items": items})
 
 
 @login_required(login_url="/users/signin")
 def cart_update(request):
     if request.method == 'PATCH':
-        item = Cart.objects.get(user = request.user, product = get_object_or_404(Product, name = json.loads(request.body).get("product")))
+        print(json.loads(request.body))
+        item = Cart.objects.get(user = request.user, product = get_object_or_404(Product, handle = json.loads(request.body).get("product")))
         item.quantity = json.loads(request.body)["quantity"]
         item.save()
 
@@ -52,7 +54,7 @@ def cart_update(request):
 @login_required(login_url="/users/signin")
 def cart_delete(request):
     if request.method == "DELETE":
-        Cart.objects.get(user = request.user, product = get_object_or_404(Product, name = json.loads(request.body).get("product"))).delete()
+        Cart.objects.get(user = request.user, product = get_object_or_404(Product, handle = json.loads(request.body).get("product"))).delete()
 
         return JsonResponse({"message": "상품을 장바구니에서 삭제했습니다.", "redirect_url": ""})
     else:
