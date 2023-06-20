@@ -28,9 +28,9 @@
     <tbody>
         {% for i in items %}
         <tr>
-            <td>{{ i.product }}</td>
-            <td>{{ i.quantity }}</td>
-            <td><button id="deleteBtn" type="submit">삭제</button></td>
+            <td id="{{ i.product }}">{{ i.product }}</td>
+            <td><input id="{{ i.product }}-quantity" type="number" value="{{ i.quantity }}"></td>
+            <td><button id="{{ i.product }}-deleteBtn" type="submit">삭제</button></td>
         </tr>
         {% endfor %}
     </tbody>
@@ -39,7 +39,52 @@
 <h2>현재 장바구니에 담긴 상품이 없습니다.</h2>
 {% endif %}
 
-{% endblock content %}
+{% for i in items %}
+<script>
+    document.querySelector('#{{ i.product }}-quantity').addEventListener('input', function (e) {
+        e.preventDefault();
 
-<body></body>
-</html>
+        fetch('update/', {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrftoken
+            },
+            body: JSON.stringify({
+                product: '{{ i.product }}',
+                quantity: document.querySelector('#{{ i.product }}-quantity').value
+            })
+        })
+            .then(res => res.json())
+            .then(data => {
+                if (data.status_code == 200) {
+                    window.location.href = data.redirect_url;
+                } else {
+                    alert(data.message);
+                    window.location.href = data.redirect_url;
+                }
+            });
+    });
+
+    document.querySelector('#{{ i.product }}-deleteBtn').addEventListener('click', function (e) {
+        e.preventDefault();
+
+        fetch('delete/', {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrftoken
+            },
+            body: JSON.stringify({
+                product: '{{ i.product }}',
+            })
+        })
+            .then(res => res.json())
+            .then(data => {
+                alert(data.message);
+                window.location.href = data.redirect_url;
+            });
+    });
+</script>
+{% endfor %}
+{% endblock content %}

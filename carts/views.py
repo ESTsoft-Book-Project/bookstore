@@ -30,6 +30,7 @@ def cart_add(request):
         else:
             return JsonResponse({"message": form.errors.as_json()})
 
+
 @login_required(login_url="/users/signin")
 def cart_list(request):
     items = Cart.objects.filter(user = request.user)
@@ -37,7 +38,22 @@ def cart_list(request):
 
 
 @login_required(login_url="/users/signin")
+def cart_update(request):
+    if request.method == 'PATCH':
+        item = Cart.objects.get(user = request.user, product = get_object_or_404(Product, name = json.loads(request.body).get("product")))
+        item.quantity = json.loads(request.body)["quantity"]
+        item.save()
+
+        return JsonResponse({"redirect_url": "", "status_code": 200})
+    else:
+        return JsonResponse({"message": "잘못된 접근입니다.", "redirect_url": "", "status_code": 400})
+
+
+@login_required(login_url="/users/signin")
 def cart_delete(request):
-    cart = Cart.objects.get(user = request.user, product = request.product)
-    cart.delete()
-    return JsonResponse({"message": "상품을 장바구니에서 삭제했습니다."})
+    if request.method == "DELETE":
+        Cart.objects.get(user = request.user, product = get_object_or_404(Product, name = json.loads(request.body).get("product"))).delete()
+
+        return JsonResponse({"message": "상품을 장바구니에서 삭제했습니다.", "redirect_url": ""})
+    else:
+        return JsonResponse({"message": "잘못된 접근입니다.", "redirect_url": ""})
