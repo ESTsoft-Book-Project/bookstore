@@ -2,6 +2,7 @@ from django.conf import settings
 from django.db import models
 import stripe
 from django.urls import reverse
+
 class Product(models.Model):
     name = models.CharField(max_length=255, unique=False)
     handle = models.SlugField(max_length=255, unique=True)

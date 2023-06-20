@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+{% block title %}Book List{% endblock title %}
+{% block stylesheet %}
+<style>
+    table {
+        border-collapse: collapse;
+    }
+
+    th,
+    td {
+        border: 1px solid black;
+    }
+</style>
+{% endblock stylesheet %}
+
+
+{% block content %}
+<h1>Cart Items</h1>
+{% if items %}
+<table>
+    <thead>
+        <tr>
+            <td>상품명</td>
+            <td>수량</td>
+            <td>삭제</td>
+        </tr>
+    </thead>
+    <tbody>
+        {% for i in items %}
+        <tr>
+            <td>{{ i.product }}</td>
+            <td>{{ i.quantity }}</td>
+            <td><button id="deleteBtn" type="submit">삭제</button></td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<h2>현재 장바구니에 담긴 상품이 없습니다.</h2>
+{% endif %}
+
+{% endblock content %}
+
+<body></body>
+</html>
