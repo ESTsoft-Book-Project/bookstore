@@ -16,11 +16,6 @@
     height: 200px;
   }
 
-  .disabled {
-    pointer-events: none;
-    color: #ccc;
-  }
-
 </style>
 {% endblock stylesheet %}
 
@@ -40,7 +35,7 @@
     <tbody>
       {% for b in books %}
       <tr>
-        <td><a href="{{ b.handle }}" {% if b.stock <= 0 %} class="disabled" {% endif %}>{{ b.name }}</a></td>
+        <td><a href="{{ b.handle }}">{{ b.name }}</a></td>
         <td>{{ b.price }}</td>
         <td>{{ b.user }}</td>
         <td><img src="{{ b.get_image_url }}" alt=" Image">
