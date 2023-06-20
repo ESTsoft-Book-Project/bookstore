@@ -5,7 +5,6 @@
 책 등록
 {% endblock title %}
 
-
 {% block content %}
 <h1>책 등록</h1>
 <form method="post" class="productCreate">
@@ -16,6 +15,9 @@
   <label for="price">가격:</label>
   <input type="text" id="price" name="price" required /><br /><br />
 
+  <label for="image">책 이미지:</label>
+  <input type="file" id="image" name="image" accept="image/*" required /><br /><br />
+
   <label for="user">등록자:</label>
   <input type="text" id="user" name="user" value="{{ user.nickname }}" readonly /><br /><br />
 
@@ -24,38 +26,40 @@
 
 <script>
   document.querySelector(".productCreate").addEventListener("submit", function (e) {
-    e.preventDefault();
+  e.preventDefault();
+
+  const fileInput = document.querySelector("#image");
+  const imageFile = fileInput.files[0];
+
+  const reader = new FileReader();
+  reader.onloadend = function () {
+    const imageData = reader.result.split(",")[1];
+
+    const data = {
+      name: document.querySelector("#name").value,
+      price: document.querySelector("#price").value,
+      image: imageData
+    };
+
+    const csrfToken = getCookie("csrftoken");
+
     fetch("/products/book/create/", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "X-CSRFToken": getCookie("csrftoken")
+        "X-CSRFToken": csrfToken
       },
-      body: JSON.stringify({
-        "name": document.querySelector("#name").value,
-        "price": document.querySelector("#price").value,
-      })
+      body: JSON.stringify(data)
     })
       .then(res => res.json())
       .then(data => {
-        alert(data.message)
-        window.location.href = data.redirect_url
-      })
-  });
+        alert(data.message);
+        window.location.href = data.redirect_url;
+      });
+  };
 
-  function getCookie(name) {
-    var cookieValue = null;
-    if (document.cookie && document.cookie !== '') {
-      var cookies = document.cookie.split(';');
-      for (var i = 0; i < cookies.length; i++) {
-        var cookie = cookies[i].trim();
-        if (cookie.substring(0, name.length + 1) === (name + '=')) {
-          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-          break;
-        }
-      }
-    }
-    return cookieValue;
-  }
+  reader.readAsDataURL(imageFile);
+});
+
 </script>
 {% endblock content %}
