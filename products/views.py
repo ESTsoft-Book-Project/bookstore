@@ -64,9 +64,12 @@ def update_product(request, handle):
         form = ProductForm(request_data, instance=book)
         if form.is_valid():
             product = form.save(commit=False)
-            product.user = request.user   
-            product.save()
-            return JsonResponse({"message": "도서 정보가 수정되었습니다.", 'redirect': '/products/book/'}, status = 200)
+            if book.user == request.user:
+                product.save()
+                return JsonResponse({"message": "도서 정보가 수정되었습니다.", 'redirect': '/products/book/'}, status = 200)
+            else:
+                return JsonResponse({"message": "상품을 수정할 권한이 없습니다.", 'redirect': '/products/book/'}, status=403)
+            
         else:
             if not isinstance(request_data["price"], int):
                 return JsonResponse({"message": "가격은 숫자로 입력해야 합니다.", 'redirect': ''}, status=400)
