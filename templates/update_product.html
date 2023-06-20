@@ -7,10 +7,10 @@
     <form method="post" id="productUpdate">
         {% csrf_token %}
         <label for="name">책 제목:</label>
-        <input type="text" id="name" name="name" required /><br /><br />
+        <input type="text" id="name" name="name" value="{{ book.name }}" required /><br /><br />
 
         <label for="price">가격:</label>
-        <input type="text" id="price" name="price" required /><br /><br />
+        <input type="text" id="price" name="price" value="{{ book.price }}" required /><br /><br />
 
         <label for="user">등록자:</label>
         <input type="text" id="user" name="user" value="{{ user.nickname }}" readonly /><br /><br />
