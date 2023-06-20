@@ -7,13 +7,16 @@
     <form method="post" id="productUpdate">
         {% csrf_token %}
         <label for="name">책 제목:</label>
-        <input type="text" id="name" name="name" required /><br /><br />
+        <input type="text" id="name" name="name" value="{{ book.name }}"/><br /><br />
 
         <label for="price">가격:</label>
-        <input type="text" id="price" name="price" required /><br /><br />
+        <input type="text" id="price" name="price" value="{{ book.price }}" /><br /><br />
 
         <label for="user">등록자:</label>
         <input type="text" id="user" name="user" value="{{ user.nickname }}" readonly /><br /><br />
+
+        <label for="stock">재고:</label>
+        <input type="number" id="stock" name="stock" value="{{ book.stock }}" /><br /><br />
 
         <input type="submit" value="등록" />
         <a href="javascript:history.back()"><input type="button" value="취소"></a>
@@ -31,6 +34,7 @@
             body: JSON.stringify({
                 "name": document.querySelector("#name").value,
                 "price": document.querySelector("#price").value,
+                "stock": document.querySelector("#stock").value,
             })
         })
             .then(res => res.json())
