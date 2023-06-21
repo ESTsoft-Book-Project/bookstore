@@ -10,7 +10,7 @@ from core.env import config
 STRIPE_SECRET_KEY = config("STRIPE_SECRET_KEY", default=None)
 stripe.api_key = STRIPE_SECRET_KEY
 KAKAOPAY_SECRET_KEY = config("KAKAOPAY_SECRET_KEY", default=None)
-kakaopay_amdin_key = KAKAOPAY_SECRET_KEY
+kakaopay_admin_key = KAKAOPAY_SECRET_KEY
 
 
 @login_required
@@ -123,7 +123,7 @@ def kakaopay_start_view(request):
 
     url = f'https://kapi.kakao.com/v1/payment/ready'
     header = {
-        'Authorization': f'KakaoAK {kakaopay_amdin_key}'
+        'Authorization': f'KakaoAK {kakaopay_admin_key}'
     }
 
     data = {
@@ -164,7 +164,7 @@ def kakaopay_success_view(request):
     
     url = f'https://kapi.kakao.com/v1/payment/approve'
     header = {
-        'Authorization': f'KakaoAK {kakaopay_amdin_key}'
+        'Authorization': f'KakaoAK {kakaopay_admin_key}'
     }
     data = {
         'cid': 'TC0ONETIME', # 테스트용 기본 가맹점 키 값
