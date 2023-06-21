@@ -3,20 +3,33 @@
 {% block title %}Book Detail{% endblock title%}
 
 {% block content %}
+{% block stylesheet %}
+<style>
 {% if book.user != request.user %}
-  <style>
     .hidden {
         visibility: hidden;
     }
-  </style>
 {% endif %}
+    .kakaopay-btn {
+        background: url(https://developers.kakao.com/tool/resource/static/img/button/pay/payment_icon_yellow_small.png) no-repeat center;
+        background-size: cover;
+        border: none;
+        width: 80px;
+        height: 32px;
+    }
+
+    .kakaopay-btn:hover {
+        filter: brightness(70%);
+    }
+</style>
+{% endblock stylesheet %}
   <h1>{{ book.name }}</h1>
   <p>Handle: {{ book.handle }}</p>
   <p>Price: {{ book.price }}</p>
   <p>User: {{ book.user }}</p>
   <p>Stock: {{ book.stock }}</p>
   <button type="submit" id="purchaseBtn">구매</button>
-  <button type="submit" id="kakaopayBtn">카카오페이</button>
+  <button type="submit" id="kakaopayBtn" class="kakaopay-btn"></button>
 
   <span class="hidden"><a href="/products/book/update/{{ book.handle }}/"><input type="button" value="수정"></a></span>
   <button type="submit" id="deleteBtn" class="hidden">삭제</button>
