@@ -15,6 +15,9 @@
   <p>Price: {{ book.price }}</p>
   <p>User: {{ book.user }}</p>
   <p>Stock: {{ book.stock }}</p>
+  <div>
+    <img src="{{ book.get_image_url }}" alt="Image" width="500" height="500">
+  </div>
   <button type="submit" id="purchaseBtn">구매</button>
 
   <span class="hidden"><a href="/products/book/update/{{ book.handle }}/"><input type="button" value="수정"></a></span>
