@@ -22,11 +22,14 @@
   <a href="/products/book/"><input type="button" value="목록"></a>
   
     <script>
-        const csrftoken = getCookie('csrftoken');
+    const csrftoken = getCookie('csrftoken');
+    const deleteBtn = document.getElementById('deleteBtn');
 
-        document.getElementById('deleteBtn').addEventListener('click', function (e) {
+    if (deleteBtn) {
+        deleteBtn.addEventListener('click', function (e) {
+    
         e.preventDefault();
-        
+    
         const url = '/products/book/delete/'+'{{ book.handle }}';
         // console.log(url)
         fetch(url , {
@@ -50,8 +53,8 @@
             .catch(
                 error => console.log(error)
             );
-    });
-
+        });
+    }
 
     document.getElementById('purchaseBtn').addEventListener('click', function () {
     const handle = '{{ book.handle }}';
