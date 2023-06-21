@@ -4,9 +4,10 @@ import stripe
 from django.urls import reverse
 
 class Product(models.Model):
-    name = models.CharField(max_length=255, unique=False)
+    name = models.CharField(max_length=255)
     handle = models.SlugField(max_length=255, unique=True)
     price = models.DecimalField(max_digits=8, decimal_places=2)
+    image = models.ImageField(upload_to='product_images/', blank=True, null=True)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
@@ -36,3 +37,8 @@ class Product(models.Model):
 
     def get_absolute_url(self):
         return reverse("book:book_detail", kwargs={"handle": self.handle})
+    
+    def get_image_url(self):
+        if self.image:
+            return self.image.url
+        return ''

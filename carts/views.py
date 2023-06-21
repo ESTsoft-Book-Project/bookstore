@@ -41,7 +41,6 @@ def cart_list(request):
 @login_required(login_url="/users/signin")
 def cart_update(request):
     if request.method == 'PATCH':
-        print(json.loads(request.body))
         item = Cart.objects.get(user = request.user, product = get_object_or_404(Product, handle = json.loads(request.body).get("product")))
         item.quantity = json.loads(request.body)["quantity"]
         item.save()
