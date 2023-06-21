@@ -43,6 +43,20 @@
   .container-body button:hover {
     background-color: #45a049;
   }
+
+  .line {
+    border: 1px solid #ccc;
+    margin: 8px 0;
+  }
+
+  a, a:visited {
+    color: white;
+    text-decoration-line: none;
+  }
+
+  #google {
+    background-color: #4285F4;
+  }
 </style>
 {% endblock stylesheet %}
 
@@ -66,7 +80,10 @@
 
         <button type="submit">로그인</button>
       </form>
-      <a href="{% provider_login_url 'google' %}">Sign in with Google</a>
+      <div class="line"></div>
+      <button type="button" id="google">
+        <a href="{% provider_login_url 'google' %}">Sign in with Google</a>
+      </button>
     </div>
 
     <script>
