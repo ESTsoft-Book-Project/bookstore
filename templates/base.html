@@ -17,35 +17,15 @@
     {% comment %} update css_version upon changes in css files {% endcomment %}
     {% with css_version="2.1" %} {% block stylesheet %}{% endblock stylesheet%}
     {% endwith %}
+
+    <script src="{% static 'js/getCookie.js' %}"></script>
 </head>
 
 <body>
     {% include 'nav.html' %}
 
-    {% block content %}
-        {% comment %} Here main magic goes! {% endcomment %}
-    {% endblock content %}
-
-    <script>
-        const csrftoken = getCookie('csrftoken');
-
-        function getCookie(name) {
-            var cookieValue = null;
-            if (document.cookie && document.cookie !== '') {
-                var cookies = document.cookie.split(';');
-                for (var i = 0; i < cookies.length; i++) {
-                    var cookie = cookies[i].trim();
-                    // Does this cookie string begin with the name we want?
-                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                        break;
-                    }
-                }
-            }
-            return cookieValue;
-        }
-        
-        {% if user.is_authenticated %}
+    {% if user.is_authenticated %}
+        <script>
             document.querySelector('#sign_out_btn').addEventListener('click', signout);
             function signout(e) {
                 e.preventDefault();
@@ -53,7 +33,7 @@
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'X-CSRFToken': csrftoken
+                        'X-CSRFToken': getCookie("csrftoken")
                     }
                 })
                     .then(response => response.json())
@@ -63,13 +43,17 @@
                     })
                     .catch(error => console.log(error));
             };
-        {% endif %}
-            
-    </script>
+        </script>
+    {% endif %}
+
+    {% block content %}
+        {% comment %} Here main magic goes! {% endcomment %}
+    {% endblock content %}
+
+    
 
     <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
     <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
-
 </body>
 
 </html>

@@ -6,7 +6,6 @@ django-mathfilters==1.0.0
 idna==3.4
 Pillow==9.5.0
 python-decouple==3.8
-python-slugify==8.0.1
 requests==2.31.0
 sqlparse==0.4.4
 stripe==5.4.0

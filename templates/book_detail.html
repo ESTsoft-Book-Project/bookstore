@@ -3,40 +3,35 @@
 {% block title %}Book Detail{% endblock title%}
 
 {% block content %}
-<h1>{{ book.name }}</h1>
-<p>Handle: {{ book.handle }}</p>
-<p>Price: {{ book.price }}</p>
-<p>User: {{ book.user }}</p>
-<button type="submit" id="purchaseBtn">구매</button>
-<button type="submit" id="cartBtn">카트</button>
-
-{% if book.user == request.user %}
-<a href="/products/book/update/{{ book.handle }}/"><input type="button" value="수정"></a>
-<button type="submit" id="deleteBtn">Delete</button>
-{% endif %}
-<a href="/products/book/"><input type="button" value="목록"></a>
-
-<script>
-
-    function getCookie(name) {
-        var cookieValue = null;
-        if (document.cookie && document.cookie !== '') {
-            var cookies = document.cookie.split(';');
-            for (var i = 0; i < cookies.length; i++) {
-                var cookie = cookies[i].trim();
-                // Does this cookie string begin with the name we want?
-                if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                    break;
-                }
-            }
-        }
-        return cookieValue;
+{% if book.user != request.user %}
+  <style>
+    .hidden {
+        visibility: hidden;
     }
+  </style>
+{% endif %}
+  <h1>{{ book.name }}</h1>
+  <div>
+    <p>Handle: {{ book.handle }}</p>
+    <p>Price: {{ book.price }}</p>
+    <p>User: {{ book.user }}</p>
+    <p>Stock: {{ book.stock }}</p>
+    <img src="{{ book.get_image_url }}" alt="Image" width="500" height="500">
+  </div>
+  <button type="submit" id="purchaseBtn">구매</button>
+  <button type="submit" id="cartBtn">카트</button>
 
+  <span class="hidden"><a href="/products/book/update/{{ book.handle }}/"><input type="button" value="수정"></a></span>
+  <button type="submit" id="deleteBtn" class="hidden">삭제</button>
+  <a href="/products/book/"><input type="button" value="목록"></a>
+  
+    <script>
     const csrftoken = getCookie('csrftoken');
+    const deleteBtn = document.getElementById('deleteBtn');
 
-    document.getElementById('deleteBtn').addEventListener('click', function (e) {
+    if (deleteBtn) {
+        deleteBtn.addEventListener('click', function (e) {
+    
         e.preventDefault();
 
         const url = '/products/book/delete/' + '{{ book.handle }}';
@@ -62,8 +57,8 @@
             .catch(
                 error => console.log(error)
             );
-    });
-
+        });
+    }
 
     document.getElementById('purchaseBtn').addEventListener('click', function () {
         const handle = '{{ book.handle }}';

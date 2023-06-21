@@ -34,9 +34,13 @@
             <td><input id="checkbox" type="checkbox" value="{{ i.quantity|mul:i.product.price }}">
             </td>
             <td id="{{ i.product.handle }}">{{ i.product }}</td>
-            <td><input id="{{ i.product.handle }}-quantity" type="number" value="{{ i.quantity }}"></td>
+            <td>
+                <input id="{{ i.product.handle }}-quantity" type="number" value="{{ i.quantity }}">
+            </td>
             <td id="{{ i.product.handle }}-price">{{ i.quantity|mul:i.product.price }} 원</td>
-            <td><button id="{{ i.product.handle }}-deleteBtn" type="submit">삭제</button></td>
+            <td>
+                <button id="{{ i.product.handle }}-deleteBtn" type="submit">삭제</button>
+            </td>
         </tr>
         {% endfor %}
     </tbody>
@@ -46,8 +50,13 @@
 <h2>현재 장바구니에 담긴 상품이 없습니다.</h2>
 {% endif %}
 
+<script>
+    const csrftoken = getCookie("csrftoken");
+</script>
+
 {% for i in items %}
 <script>
+
     document.querySelector('#{{ i.product.handle }}-quantity').addEventListener('input', function (e) {
         e.preventDefault();
 
