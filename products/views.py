@@ -25,10 +25,12 @@ def create_product(request):
         request_data = json.loads(request.body)
         image_data = request_data.get('image')
         handle = slugify(request_data["name"])
-        
         num = 1
+        slug = handle
+        handle = f'{handle}-{num}'
+        
         while Product.objects.filter(handle=handle).exists():
-            handle = f'{handle}-{num}'
+            handle = f'{slug}-{num}'
             num += 1
 
         form = ProductForm(request_data)
