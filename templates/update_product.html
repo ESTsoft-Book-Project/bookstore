@@ -1,8 +1,12 @@
-<!DOCTYPE html>
-<head>
-    <title>책 정보 수정</title>
-</head>
-<body>
+{% extends 'base.html' %}
+
+
+{% block title %}
+    책 정보 수정
+{% endblock title %}
+
+
+{% block content %}
     <h1>책 정보 수정</h1>
     <form method="post" id="productUpdate">
         {% csrf_token %}
@@ -21,8 +25,7 @@
         <input type="submit" value="등록" />
         <a href="javascript:history.back()"><input type="button" value="취소"></a>
     </form>
-</body>
-<script>
+    <script>
     document.querySelector("#productUpdate").addEventListener("submit", function (e) {
         e.preventDefault();
         fetch("/products/book/update/{{ book.handle }}/", {
@@ -46,20 +49,5 @@
                 console.error("Error:", error);
             })
     });
-
-    function getCookie(name) {
-        var cookieValue = null;
-        if (document.cookie && document.cookie !== '') {
-            var cookies = document.cookie.split(';');
-            for (var i = 0; i < cookies.length; i++) {
-                var cookie = cookies[i].trim();
-                if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                    break;
-                }
-            }
-        }
-        return cookieValue;
-    }
 </script>
-</html>
+{% endblock content %}
