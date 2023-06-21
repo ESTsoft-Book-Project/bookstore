@@ -21,6 +21,9 @@
   <label for="user">등록자:</label>
   <input type="text" id="user" name="user" value="{{ user.nickname }}" readonly /><br /><br />
 
+  <label for="stock">재고:</label>
+  <input type="number" id="stock" name="stock" value="0" /><br /><br />
+
   <input type="submit" value="등록" />
 </form>
 
@@ -38,6 +41,7 @@
     const data = {
       name: document.querySelector("#name").value,
       price: document.querySelector("#price").value,
+      stock: document.querySelector("#stock").value,
       image: imageData
     };
 

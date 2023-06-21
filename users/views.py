@@ -64,4 +64,4 @@ def delete_user(request):
 
 def signout(request):
     logout(request)
-    return JsonResponse({'result': True, 'redirect': '', 'statusCode': 200})
+    return JsonResponse({'result': True, 'redirect': reverse('users:signin'), 'statusCode': 200})

@@ -10,6 +10,7 @@ class Product(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
+    stock = models.IntegerField(default=0)
     
     # purchases
     stripe_price = models.IntegerField(default=999) # 100 * price
