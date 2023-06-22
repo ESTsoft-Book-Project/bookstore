@@ -1,10 +1,11 @@
+import json
 from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.decorators import login_required
-from django.http import JsonResponse
+from django.views.decorators.http import require_http_methods
+from django.http import HttpResponse, JsonResponse
 from .forms import CartForm
 from .models import Cart
 from .models import Product
-import json
 
 
 @login_required(login_url="/users/signin")
@@ -32,10 +33,18 @@ def cart_add(request):
 
 
 @login_required(login_url="/users/signin")
-def cart_list(request):
-    if request.method == "GET":
-        items = Cart.objects.filter(user = request.user)
-        return render(request, "cart_list.html", {"items": items})
+@require_http_methods(['GET'])
+def cart_list(request) -> HttpResponse:
+    """returns: HttpResponse that will query products"""
+    items = Cart.objects.filter(user = request.user)
+    return render(request, "cart_list.html", {"items": items})
+
+
+@require_http_methods(['GET'])
+def product_list(request) -> JsonResponse:
+    """returns: JsonResponse that contains products"""
+    items = list(Cart.objects.filter(user=request.user).values())
+    return JsonResponse({"items": items, "statusCode": 200}, safe=False)
 
 
 @login_required(login_url="/users/signin")
