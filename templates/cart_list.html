@@ -1,0 +1,120 @@
+{% extends 'base.html' %}
+{% block title %}Book List{% endblock title %}
+{% block stylesheet %}
+<style>
+    table {
+        border-collapse: collapse;
+    }
+
+    th,
+    td {
+        border: 1px solid black;
+    }
+</style>
+{% endblock stylesheet %}
+
+
+{% block content %}
+{% load mathfilters %}
+<h1>Cart Items</h1>
+{% if items %}
+<table>
+    <thead>
+        <tr>
+            <td>선택</td>
+            <td>상품명</td>
+            <td>수량</td>
+            <td>금액</td>
+            <td>삭제</td>
+        </tr>
+    </thead>
+    <tbody>
+        {% for i in items %}
+        <tr>
+            <td><input id="checkbox" type="checkbox" value="{{ i.quantity|mul:i.product.price }}">
+            </td>
+            <td id="{{ i.product.handle }}">{{ i.product }}</td>
+            <td>
+                <input id="{{ i.product.handle }}-quantity" type="number" value="{{ i.quantity }}">
+            </td>
+            <td id="{{ i.product.handle }}-price">{{ i.quantity|mul:i.product.price }} 원</td>
+            <td>
+                <button id="{{ i.product.handle }}-deleteBtn" type="submit">삭제</button>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+<p id="total">총액: 0원</p>
+{% else %}
+<h2>현재 장바구니에 담긴 상품이 없습니다.</h2>
+{% endif %}
+
+<script>
+    const csrftoken = getCookie("csrftoken");
+</script>
+
+{% for i in items %}
+<script>
+
+    document.querySelector('#{{ i.product.handle }}-quantity').addEventListener('input', function (e) {
+        e.preventDefault();
+
+        fetch('update/', {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrftoken
+            },
+            body: JSON.stringify({
+                product: '{{ i.product.handle }}',
+                quantity: document.querySelector('#{{ i.product.handle }}-quantity').value
+            })
+        })
+            .then(res => res.json())
+            .then(data => {
+                if (data.status_code == 200) {
+                    window.location.href = data.redirect_url;
+                } else {
+                    alert(data.message);
+                    window.location.href = data.redirect_url;
+                }
+            });
+    });
+
+    document.querySelector('#{{ i.product.handle }}-deleteBtn').addEventListener('click', function (e) {
+        e.preventDefault();
+
+        fetch('delete/', {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrftoken
+            },
+            body: JSON.stringify({
+                product: '{{ i.product.handle }}',
+            })
+        })
+            .then(res => res.json())
+            .then(data => {
+                alert(data.message);
+                window.location.href = data.redirect_url;
+            });
+    });
+</script>
+{% endfor %}
+<script>
+    document.querySelectorAll('#checkbox').forEach(checkbox => {
+        checkbox.addEventListener('change', function () {
+            var total = 0;
+
+            document.querySelectorAll('#checkbox').forEach(checkbox => {
+                if (checkbox.checked) {
+                    total += parseInt(checkbox.value);
+                }
+            });
+            document.querySelector('#total').textContent = `총액: ${total}원`;
+        });
+    });
+</script>
+{% endblock content %}

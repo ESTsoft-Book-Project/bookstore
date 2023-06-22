@@ -42,6 +42,8 @@ INSTALLED_APPS = [
     "users",
     "products",
     "purchases",
+    "carts",
+    "mathfilters",
 
     'allauth',
     'allauth.account',
