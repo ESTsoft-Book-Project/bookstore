@@ -94,3 +94,18 @@ def delete_product(request, handle):
         return JsonResponse({'result': False, 'statusCode': 403})
     
     return render(request, 'book_detail.html', {'book': book})
+
+def add_comment(request, handle):
+    book = get_object_or_404(Product, handle=handle)
+    if request.method == "POST":
+        form = CommentForm(request.POST)
+        if form.is_valid():
+            comment = form.save(commit=False)
+            comment.product = book
+            comment.save()
+            return JsonResponse({"success": True, "message": "댓글이 추가되었습니다."})
+        else:
+            errors = form.errors.as_json()
+            return JsonResponse({"success": False, "errors": errors}, status=400)
+    else:
+        return JsonResponse({"success": False, "errors": "잘못된 요청입니다."}, status=400)
