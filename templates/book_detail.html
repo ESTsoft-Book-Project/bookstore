@@ -3,13 +3,26 @@
 {% block title %}Book Detail{% endblock title%}
 
 {% block content %}
+{% block stylesheet %}
+<style>
 {% if book.user != request.user %}
-  <style>
     .hidden {
         visibility: hidden;
     }
-  </style>
 {% endif %}
+    .kakaopay-btn {
+        background: url(https://developers.kakao.com/tool/resource/static/img/button/pay/payment_icon_yellow_small.png) no-repeat center;
+        background-size: cover;
+        border: none;
+        width: 80px;
+        height: 32px;
+    }
+
+    .kakaopay-btn:hover {
+        filter: brightness(70%);
+    }
+</style>
+{% endblock stylesheet %}
   <h1>{{ book.name }}</h1>
   <div>
     <p>Handle: {{ book.handle }}</p>
@@ -20,88 +33,115 @@
   </div>
   <button type="submit" id="purchaseBtn">구매</button>
   <button type="submit" id="cartBtn">카트</button>
+  <button type="submit" id="kakaopayBtn" class="kakaopay-btn"></button>
 
   <span class="hidden"><a href="/products/book/update/{{ book.handle }}/"><input type="button" value="수정"></a></span>
   <button type="submit" id="deleteBtn" class="hidden">삭제</button>
   <a href="/products/book/"><input type="button" value="목록"></a>
   
     <script>
-    const csrftoken = getCookie('csrftoken');
-    const deleteBtn = document.getElementById('deleteBtn');
+        const csrftoken = getCookie('csrftoken');
+        const deleteBtn = document.getElementById('deleteBtn');
 
-    if (deleteBtn) {
-        deleteBtn.addEventListener('click', function (e) {
-    
-        e.preventDefault();
+        if (deleteBtn) {
+            deleteBtn.addEventListener('click', function (e) {
 
-        const url = '/products/book/delete/' + '{{ book.handle }}';
-        // console.log(url)
-        fetch(url, {
-            method: 'DELETE',
-            headers: {
-                'X-CSRFToken': csrftoken
-            },
-        })
-            .then(response => response.json())
-            .then(data => {
-                if (data.statusCode == 200) {
-                    window.location.href = data.redirect;
-                }
-                else if (data.statusCode == 401) {
-                    window.location.href = data.redirect;
-                }
-                else if (data.statusCode == 403) {
-                    alert('상품 삭제 권한이 없습니다');
-                }
-            })
-            .catch(
-                error => console.log(error)
-            );
-        });
-    }
+                e.preventDefault();
 
-    document.getElementById('purchaseBtn').addEventListener('click', function () {
-        const handle = '{{ book.handle }}';
-        const url = `/purchases/start/`;
-        fetch(url, {
-            method: 'POST',
-            headers: {
-                'X-CSRFToken': csrftoken,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ handle: handle })
-        })
-            .then(response => response.json())
-            .then(data => {
-                if (data.checkout_url) {
-                    window.location.href = data.checkout_url;
-                } else if (data.statusCode == 400) {
-                    alert('잘못된 요청입니다');
-                } else if (data.statusCode == 401) {
-                    alert('로그인이 필요합니다');
-                } else if (data.statusCode == 403) {
-                    alert('구매할 수 없는 상품입니다');
-                }
-            })
-            .catch(error => console.log(error));
-    });
-
-    document.getElementById('cartBtn').addEventListener('click', function () {
-        const handle = '{{ book.handle }}';
-        const url = '/carts/add/';
-        fetch(url, {
-            method: 'POST',
-            headers: {
-                'X-CSRFToken': csrftoken,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ product: handle })
-        })
-            .then(response => response.json())
-            .then(data => {
-                alert(data.message);
-                window.location.href = data.redirect_url;
+                const url = '/products/book/delete/' + '{{ book.handle }}';
+                // console.log(url)
+                fetch(url, {
+                    method: 'DELETE',
+                    headers: {
+                        'X-CSRFToken': csrftoken
+                    },
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.statusCode == 200) {
+                            window.location.href = data.redirect;
+                        }
+                        else if (data.statusCode == 401) {
+                            window.location.href = data.redirect;
+                        }
+                        else if (data.statusCode == 403) {
+                            alert('상품 삭제 권한이 없습니다');
+                        }
+                    })
+                    .catch(
+                        error => console.log(error)
+                    );
             });
-    });
-</script>
+        }
+
+        document.getElementById('purchaseBtn').addEventListener('click', function () {
+            const handle = '{{ book.handle }}';
+            const url = `/purchases/start/`;
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrftoken,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ handle: handle })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.checkout_url) {
+                        window.location.href = data.checkout_url;
+                    } else if (data.statusCode == 400) {
+                        alert('잘못된 요청입니다');
+                    } else if (data.statusCode == 401) {
+                        alert('로그인이 필요합니다');
+                    } else if (data.statusCode == 403) {
+                        alert('구매할 수 없는 상품입니다');
+                    }
+                })
+                .catch(error => console.log(error));
+        });
+
+        document.getElementById('kakaopayBtn').addEventListener('click', function () {
+            const handle = '{{ book.handle }}';
+            const url = `/purchases/kakaopay_start/`;
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrftoken,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ handle: handle })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.redirect) {
+                        window.location.href = data.redirect;
+                    } else if (data.statusCode == 400) {
+                        alert('잘못된 요청입니다');
+                    } else if (data.statusCode == 401) {
+                        alert('로그인이 필요합니다');
+                    } else if (data.statusCode == 403) {
+                        alert('구매할 수 없는 상품입니다');
+                    }
+                })
+                .catch(error => console.log(error));
+        });
+        document.getElementById('cartBtn').addEventListener('click', function () {
+            const handle = '{{ book.handle }}';
+            const url = '/carts/add/';
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrftoken,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ product: handle })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    alert(data.message);
+                    window.location.href = data.redirect_url;
+                });
+        });
+    </script>
 {% endblock content %}
+
