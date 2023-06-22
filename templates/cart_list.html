@@ -1,5 +1,13 @@
 {% extends 'base.html' %}
+{% load static %}
 {% block title %}Book List{% endblock title %}
+
+
+{% block headScripts %}
+<script src="{% static 'js/cartItem.js' %}"></script>
+{% endblock headScripts %}
+
+
 {% block stylesheet %}
 <style>
     table {
@@ -25,6 +33,7 @@
             <td>상품명</td>
             <td>수량</td>
             <td>금액</td>
+            <td>이미지</td>
             <td>삭제</td>
         </tr>
     </thead>
@@ -72,11 +81,14 @@
             }
             products = data.items;
             // Push products into `tbody`
-            for (p of products) {
-                console.log(p);
+            for (item of products) {
+                console.log(item);
+                document.querySelector("tbody").appendChild(
+                    cartItemToTable(products)
+                );
             }
         });
-    
+
 
 </script>
 

@@ -45,9 +45,9 @@ def product_list(request) -> JsonResponse:
     """returns: JsonResponse that contains products"""
     items = Cart.objects \
         .filter(user=request.user) \
-        .values("product_id",
-                "user_id", 
+        .values("user_id", 
                 "quantity", 
+                "product__handle",
                 "product__name",
                 "product__price",
                 "product__image")
