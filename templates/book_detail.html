@@ -134,8 +134,36 @@
     })
     .catch(error => console.log(error));
 });
+      });
+    });
 
+    Array.from(deleteCommentBtns).forEach(function (btn) {
+      btn.addEventListener('click', function (e) {
+        e.preventDefault();
 
+        var commentId = this.getAttribute('data-comment-id');
+        var commentContainer = this.parentNode;
+
+        var url = '/products/comment/delete/' + commentId + '/';
+        fetch(url, {
+          method: 'DELETE',
+          headers: {
+            'X-CSRFToken': window.csrftoken
+          }
+        })
+          .then(response => response.json())
+          .then(data => {
+            if (data.redirect) {
+              window.location.href = data.redirect;
+            } else if (data.error) {
+              alert(data.error);
+            } else {
+              commentContainer.remove();
+            }
+          })
+          .catch(error => console.log(error));
+      });
+    });
     </script>
 {% endblock content %}
 
