@@ -10,3 +10,6 @@ class Purchase(models.Model):
     
     stripe_checkout_session_id = models.CharField(max_length=220, blank=True, null=True)
     stripe_price = models.IntegerField(default=0)
+
+    kakaopay_checkout_tid = models.CharField(max_length=20, blank=True, null=True)
+    kakaopay_price = models.IntegerField(default=0)
