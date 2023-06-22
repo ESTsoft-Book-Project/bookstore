@@ -1,6 +1,6 @@
 from django.http import JsonResponse
 from django.shortcuts import render
-from .forms import ProductForm
+from .forms import ProductForm, CommentForm
 from .models import Product
 from django.shortcuts import render, redirect ,get_object_or_404
 from django.http import JsonResponse
