@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 {% block title %}로그인 페이지{% endblock title %}
 {% block stylesheet %}
+{% load socialaccount %}
 <style>
   body {
     font-family: Arial, sans-serif;
@@ -42,6 +43,26 @@
   .container-body button:hover {
     background-color: #45a049;
   }
+
+  .line {
+    border: 1px solid #ccc;
+    margin: 8px 0;
+  }
+
+  a, a:visited {
+    color: white;
+    text-decoration-line: none;
+  }
+
+  #google {
+    background-color: #4285F4;
+  }
+  #kakao {
+    background-color: #FEE500;
+  }
+  #naver {
+    background-color: #2DB400;
+  }
 </style>
 {% endblock stylesheet %}
 
@@ -65,6 +86,16 @@
 
         <button type="submit">로그인</button>
       </form>
+      <div class="line"></div>
+      <button type="button" id="google">
+        <a href="{% provider_login_url 'google' %}">Sign in with Google</a>
+      </button>
+      <button type="button" id="kakao">
+        <a href="{% provider_login_url 'kakao' %}">Sign in with Kakao</a>
+      </button>
+      <button type="button" id="naver">
+        <a href="{% provider_login_url 'naver' %}">Sign in with Naver</a>
+      </button>
     </div>
 
     <script>
