@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-{% block title %}Book Detail{% endblock title%}
+{% block title %}Book Detail{% endblock title %}
 
 {% block content %}
   <h1>{{ book.name }}</h1>
@@ -9,14 +9,14 @@
   <p>User: {{ book.user }}</p>
   <button type="submit" id="purchaseBtn">구매</button>
 
-{% if book.user == request.user %}
-  <a href="/products/book/update/{{ book.handle }}/"><input type="button" value="수정"></a>
-  <button type="submit" id="deleteBtn">삭제</button>
-{% endif %}
+  {% if book.user == request.user %}
+    <a href="/products/book/update/{{ book.handle }}/"><input type="button" value="수정"></a>
+    <button type="submit" id="deleteBtn">삭제</button>
+  {% endif %}
   <a href="/products/book/"><input type="button" value="목록"></a>
-  
-    <script>
 
+  <div id="commentsSection">
+    
     {% for comment in book.comments.all %}
       <div class="comment">
         <div class="date">{{ comment.created_at }}</div>
@@ -43,50 +43,129 @@
   </form>
 
   <script>
-        function getCookie(name) {
-            var cookieValue = null;
-            if (document.cookie && document.cookie !== '') {
-                var cookies = document.cookie.split(';');
-                for (var i = 0; i < cookies.length; i++) {
-                    var cookie = cookies[i].trim();
-                    // Does this cookie string begin with the name we want?
-                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                        break;
-                    }
-                }
-            }
-            return cookieValue;
+    function getCookie(name) {
+      var cookieValue = null;
+      if (document.cookie && document.cookie !== '') {
+        var cookies = document.cookie.split(';');
+        for (var i = 0; i < cookies.length; i++) {
+          var cookie = cookies[i].trim();
+          if (cookie.substring(0, name.length + 1) === name + '=') {
+            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+            break;
+          }
         }
+      }
+      return cookieValue;
+    }
 
-        const csrftoken = getCookie('csrftoken');
+    if (!window.csrftoken) {
+      window.csrftoken = getCookie('csrftoken');
+    }
 
-        document.getElementById('deleteBtn').addEventListener('click', function (e) {
-        e.preventDefault();
-        
-        const url = '/products/book/delete/'+'{{ book.handle }}';
-        // console.log(url)
-        fetch(url , {
-            method: 'DELETE',
-            headers: {
-                'X-CSRFToken': csrftoken
-            },
+    document.getElementById('deleteBtn').addEventListener('click', function (e) {
+      e.preventDefault();
+
+      var url = '/products/book/delete/{{ book.handle }}';
+      fetch(url, {
+        method: 'DELETE',
+        headers: {
+          'X-CSRFToken': window.csrftoken
+        },
+      })
+        .then(response => response.json())
+        .then(data => {
+          if (data.statusCode == 200) {
+            window.location.href = data.redirect;
+          } else if (data.statusCode == 401) {
+            window.location.href = data.redirect;
+          } else if (data.statusCode == 403) {
+            alert('상품 삭제 권한이 없습니다');
+          }
         })
-            .then(response => response.json())
-            .then(data => {
-                if (data.statusCode == 200) {
-                    window.location.href = data.redirect;
-                }
-                else if(data.statusCode == 401){
-                    window.location.href = data.redirect;
-                }
-                else if(data.statusCode == 403){
-                    alert('상품 삭제 권한이 없습니다');
-                }
-            })
-            .catch(
-                error => console.log(error)
-            );
+        .catch(error => console.log(error));
+    });
+
+    document.getElementById('purchaseBtn').addEventListener('click', function () {
+      var handle = '{{ book.handle }}';
+      var url = '/purchases/start/';
+      fetch(url, {
+        method: 'POST',
+        headers: {
+          'X-CSRFToken': window.csrftoken,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          handle: handle
+        })
+      })
+        .then(response => response.json())
+        .then(data => {
+          if (data.redirect) {
+            window.location.href = data.redirect;
+          } else if (data.error) {
+            alert(data.error);
+          }
+        })
+        .catch(error => console.log(error));
+    });
+
+    document.getElementById('commentForm').addEventListener('submit', function (e) {
+      e.preventDefault();
+
+      var url = '{{ comment_form_url }}';
+
+      fetch(url, {
+        method: 'POST',
+        headers: {
+          'X-CSRFToken': window.csrftoken,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          author: document.getElementById('id_author').value,
+          text: document.getElementById('id_text').value
+        })
+      })
+        .then(response => response.json())
+        .then(data => {
+          if (data.redirect) {
+            window.location.href = data.redirect;
+          } else if (data.error) {
+            alert(data.error);
+          } else {
+            var commentDiv = document.createElement('div');
+            commentDiv.classList.add('comment');
+            var dateDiv = document.createElement('div');
+            dateDiv.classList.add('date');
+            dateDiv.innerHTML = data.date;
+
+            var authorDiv = document.createElement('div');
+            authorDiv.classList.add('author');
+            authorDiv.innerHTML = data.author;
+
+            var textDiv = document.createElement('div');
+            textDiv.classList.add('text');
+            textDiv.innerHTML = data.text;
+
+            var deleteBtn = document.createElement('button');
+            deleteBtn.classList.add('delete-comment-btn');
+            deleteBtn.setAttribute('data-comment-id', data.comment_id);
+            deleteBtn.innerHTML = '삭제';
+
+            var editBtn = document.createElement('button');
+            editBtn.classList.add('edit-comment-btn');
+            editBtn.setAttribute('data-comment-id', data.comment_id);
+            editBtn.innerHTML = '수정';
+
+            commentDiv.appendChild(dateDiv);
+            commentDiv.appendChild(authorDiv);
+            commentDiv.appendChild(textDiv);
+            commentDiv.appendChild(deleteBtn);
+            commentDiv.appendChild(editBtn);
+            document.getElementById('commentsSection').appendChild(commentDiv);
+            document.getElementById('id_text').value = '';
+          }
+        })
+        .catch(error => console.log(error));
     });
 
     var editCommentBtns = document.getElementsByClassName('edit-comment-btn');
@@ -109,31 +188,38 @@
         saveBtn.innerHTML = '저장';
         commentContainer.replaceChild(saveBtn, this);
 
-    document.getElementById('purchaseBtn').addEventListener('click', function () {
-    const handle = '{{ book.handle }}';
-    const url = `/purchases/start/`;
-    fetch(url, {
-        method: 'POST',
-        headers: {
-            'X-CSRFToken': csrftoken,
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ handle: handle })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.checkout_url) {
-            window.location.href = data.checkout_url;
-        } else if (data.statusCode == 400) {
-            alert('잘못된 요청입니다');
-        } else if (data.statusCode == 401) {
-            alert('로그인이 필요합니다');
-        } else if (data.statusCode == 403) {
-            alert('구매할 수 없는 상품입니다');
-        }
-    })
-    .catch(error => console.log(error));
-});
+        saveBtn.addEventListener('click', function () {
+          var editedCommentText = textarea.value;
+          var url = '/products/comment/edit/' + commentId + '/';
+          fetch(url, {
+            method: 'PUT',
+            headers: {
+              'X-CSRFToken': window.csrftoken,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              text: editedCommentText
+            })
+          })
+            .then(response => response.json())
+            .then(data => {
+              if (data.redirect) {
+                window.location.href = data.redirect;
+              } else if (data.error) {
+                alert(data.error);
+              } else {
+                var updatedCommentText = document.createElement('p');
+                updatedCommentText.innerHTML = data.comment_text;
+                commentContainer.replaceChild(updatedCommentText, textarea);
+                var editBtn = document.createElement('button');
+                editBtn.classList.add('edit-comment-btn');
+                editBtn.setAttribute('data-comment-id', commentId);
+                editBtn.innerHTML = '수정';
+                commentContainer.replaceChild(editBtn, saveBtn);
+              }
+            })
+            .catch(error => console.log(error));
+        });
       });
     });
 
@@ -164,6 +250,5 @@
           .catch(error => console.log(error));
       });
     });
-    </script>
+  </script>
 {% endblock content %}
-
