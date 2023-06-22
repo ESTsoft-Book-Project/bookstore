@@ -89,6 +89,25 @@
             );
     });
 
+    var editCommentBtns = document.getElementsByClassName('edit-comment-btn');
+    var deleteCommentBtns = document.getElementsByClassName('delete-comment-btn');
+
+    Array.from(editCommentBtns).forEach(function (btn) {
+      btn.addEventListener('click', function (e) {
+        e.preventDefault();
+
+        var commentId = this.getAttribute('data-comment-id');
+        var commentContainer = this.parentNode;
+        var commentTextElem = commentContainer.querySelector('p');
+        var commentText = commentTextElem.innerHTML;
+        var textarea = document.createElement('textarea');
+        textarea.classList.add('edit-comment-textarea');
+        textarea.value = commentText;
+        commentContainer.replaceChild(textarea, commentTextElem);
+        var saveBtn = document.createElement('button');
+        saveBtn.classList.add('edit-comment-save-btn');
+        saveBtn.innerHTML = '저장';
+        commentContainer.replaceChild(saveBtn, this);
 
     document.getElementById('purchaseBtn').addEventListener('click', function () {
     const handle = '{{ book.handle }}';
