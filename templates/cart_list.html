@@ -66,14 +66,17 @@
     })
         .then(res => res.json())
         .then(data => {
-            console.log(data);
+            if (data.statusCode !== 200) {
+                alert("상품 데이터가 올바르게 전달되지 않았습니다.");
+                window.location.href = "/";
+            }
             products = data.items;
+            // Push products into `tbody`
+            for (p of products) {
+                console.log(p);
+            }
         });
     
-    // Push products into `tbody`
-    for (p of products) {
-        console.log(p);
-    }
 
 </script>
 

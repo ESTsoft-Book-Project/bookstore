@@ -43,8 +43,16 @@ def cart_list(request) -> HttpResponse:
 @require_http_methods(['GET'])
 def product_list(request) -> JsonResponse:
     """returns: JsonResponse that contains products"""
-    items = list(Cart.objects.filter(user=request.user).values())
-    return JsonResponse({"items": items, "statusCode": 200}, safe=False)
+    items = Cart.objects \
+        .filter(user=request.user) \
+        .values("product_id",
+                "user_id", 
+                "quantity", 
+                "product__name",
+                "product__price",
+                "product__image")
+
+    return JsonResponse({"items": list(items), "statusCode": 200}, safe=False)
 
 
 @login_required(login_url="/users/signin")
