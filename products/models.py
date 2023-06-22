@@ -2,6 +2,8 @@ from django.conf import settings
 from django.db import models
 import stripe
 from django.urls import reverse
+from django.utils import timezone
+
 class Product(models.Model):
     name = models.CharField(max_length=255)
     handle = models.SlugField(max_length=255, unique=True)
@@ -41,3 +43,9 @@ class Product(models.Model):
         if self.image:
             return self.image.url
         return ''
+
+class Comment(models.Model):
+    post=models.ForeignKey(Product, related_name='comments', on_delete=models.CASCADE)
+    author_name=models.CharField(max_length=20)
+    comment_text=models.TextField()
+    created_at=models.DateTimeField(default=timezone.now)
