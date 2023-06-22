@@ -1,9 +1,19 @@
 export const elementResponseMapper = {
   checked: "checked",
+  userId: "user_id",
   quantity: "quantity",
+  productHandle: "product__handle",
   productName: "product__name",
   productPrice: "product__price",
-  product: "product",
   imageUrl: "image_url",
-  delete: "delete",
+  bookUrl: "book_url",
 };
+
+export const cartElementOrder = [
+  "checked",
+  "productName",
+  "quantity",
+  "productPrice",
+  "imageUrl",
+  "delete",
+];

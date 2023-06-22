@@ -46,7 +46,8 @@ def product_list(request) -> JsonResponse:
     filtered = Cart.objects \
         .filter(user=request.user)
 
-    items = filtered.values("checked",
+    items = filtered.values(
+                "checked",
                 "user_id",
                 "quantity", 
                 "product__handle",
@@ -54,9 +55,11 @@ def product_list(request) -> JsonResponse:
                 "product__price")
 
     image_urls = [cart.product.get_image_url() for cart in filtered]
+    book_urls = [cart.product.get_absolute_url() for cart in filtered]
 
     for i, item in enumerate(items):
         item['image_url'] = image_urls[i]
+        item['book_url'] = book_urls[i]
 
     return JsonResponse({"items": list(items), "statusCode": 200}, safe=False)
 
