@@ -3,6 +3,7 @@ export const elementResponseMapper = {
   quantity: "quantity",
   productName: "product__name",
   productPrice: "product__price",
-  productImg: "product__image",
+  product: "product",
+  imageUrl: "image_url",
   delete: "delete",
 };

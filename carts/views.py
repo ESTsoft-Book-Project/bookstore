@@ -51,8 +51,12 @@ def product_list(request) -> JsonResponse:
                 "quantity", 
                 "product__handle",
                 "product__name",
-                "product__price",
-                "product__image")
+                "product__price")
+
+    image_urls = [cart.product.get_image_url() for cart in filtered]
+
+    for i, item in enumerate(items):
+        item['image_url'] = image_urls[i]
 
     return JsonResponse({"items": list(items), "statusCode": 200}, safe=False)
 
