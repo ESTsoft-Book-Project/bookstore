@@ -20,6 +20,9 @@
           <a href="{% url 'users:profile' %}" class="nav-link">Profile</a>
         </li>
         <li class="nav-link">
+          <a href="{% url 'carts:cart_list' %}" class="nav-link">Cart</a>
+        </li>
+        <li class="nav-link">
           <a href="{% url 'purchases:orders' %}" class="nav-link">Order</a>
         </li>
         {% else %}
