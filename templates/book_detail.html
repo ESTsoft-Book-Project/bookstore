@@ -17,6 +17,32 @@
   
     <script>
 
+    {% for comment in book.comments.all %}
+      <div class="comment">
+        <div class="date">{{ comment.created_at }}</div>
+        <strong>{{ comment.author_name }}</strong>
+        <p>{{ comment.comment_text|linebreaks }}</p>
+
+        {% if comment.author == request.user %}
+          <button class="edit-comment-btn" data-comment-id="{{ comment.id }}">수정</button>
+          <button class="delete-comment-btn" data-comment-id="{{ comment.id }}">삭제</button>
+        {% endif %}
+      </div>
+    {% empty %}
+      <p>댓글이 없습니다 :(</p>
+    {% endfor %}
+  </div>
+
+  <h3>Users Comment</h3>
+  <form method="POST" id="commentForm" class="post-form">{% csrf_token %}
+    <label for="author">Author:</label>
+    <input id="id_author" type="text" name="author">
+    <label for="text">Comment:</label>
+    <textarea id="id_text" name="text"></textarea>
+    <button type="submit" class="save btn btn-default">전송</button>
+  </form>
+
+  <script>
         function getCookie(name) {
             var cookieValue = null;
             if (document.cookie && document.cookie !== '') {
