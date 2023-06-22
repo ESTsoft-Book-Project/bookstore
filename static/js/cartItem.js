@@ -50,7 +50,7 @@ export function itemHtmlMapper(item) {
         break;
       case "delete":
         td.innerHTML = `
-        <button id="{{ i.product.handle }}-deleteBtn" type="submit">삭제</button>
+        <button id="delete-${handle}" type="submit">삭제</button>
         `;
         break;
       default:
