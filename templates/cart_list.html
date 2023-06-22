@@ -4,7 +4,6 @@
 
 
 {% block headScripts %}
-<script src="{% static 'js/cartItem.js' %}"></script>
 {% endblock headScripts %}
 
 
@@ -59,8 +58,9 @@
 <h2>현재 장바구니에 담긴 상품이 없습니다.</h2>
 {% endif %}
 
-<script>
+<script type="module">
     // initial script
+    import {itemHtmlMapper} from "{% static 'js/cartItem.js' %}";
 
     const csrftoken = getCookie("csrftoken");
 
@@ -81,10 +81,9 @@
             }
             products = data.items;
             // Push products into `tbody`
-            for (item of products) {
-                console.log(item);
+            for (let item of products) {
                 document.querySelector("tbody").appendChild(
-                    cartItemToTable(products)
+                    itemHtmlMapper(item)
                 );
             }
         });

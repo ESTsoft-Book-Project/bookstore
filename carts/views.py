@@ -43,9 +43,11 @@ def cart_list(request) -> HttpResponse:
 @require_http_methods(['GET'])
 def product_list(request) -> JsonResponse:
     """returns: JsonResponse that contains products"""
-    items = Cart.objects \
-        .filter(user=request.user) \
-        .values("user_id", 
+    filtered = Cart.objects \
+        .filter(user=request.user)
+
+    items = filtered.values("checked",
+                "user_id",
                 "quantity", 
                 "product__handle",
                 "product__name",
