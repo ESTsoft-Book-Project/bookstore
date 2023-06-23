@@ -48,9 +48,26 @@
 
 <script type="module">
     // SECTION - initial script
-    import { itemHtmlMapper, getChildDictFrom, convertToJsObject } from "{% static 'js/cartItem.js' %}";
+    import { 
+        itemHtmlMapper, 
+        getChildDictFrom, 
+        convertToJsObject, 
+        totalSum } 
+    from "{% static 'js/cartItem.js' %}";
 
     const csrftoken = getCookie("csrftoken");
+    const $total = document.querySelector("#total");
+    let total = {
+        value: 0,
+        getValue: function() { return this.value; },
+        setValue: function(v) {
+            this.value = v;
+            this.updateDom();
+        },
+        updateDom: function() {
+            $total.innerText = `총액: ${this.value} 원`;
+        }
+    };
 
     // JsonResponse를 통해 상품리스트를 얻어온다.
     /*
@@ -81,6 +98,9 @@
                 );
                 items.push({ product: product, element: element });
             }
+
+            const sum = totalSum(items.map((e) => e.product));
+            total.setValue(sum);
         });
     //!SECTION
 
@@ -96,8 +116,12 @@
 
             const originalPrice = parseInt(item.product.productPrice);
             const quantity = parseInt(children.quantity.value);
+            const resultPrice = originalPrice * quantity;
 
-            children.productPrice.innerText = `${originalPrice * quantity} 원`;
+            item.product.quantity = quantity;
+            children.productPrice.innerText = `${resultPrice} 원`;
+
+            total.setValue(totalSum(items.map((e) => e.product)));
         });
 
         children.delete.addEventListener("click", (e) => {
@@ -119,35 +143,17 @@
                     window.location.href = data.redirect_url;
                 });
         });
+
+        children.checked.addEventListener("change", () => {
+            item.product.checked = children.checked.checked;
+
+            // sum of checked product's price
+            total.setValue(totalSum(items.map((e) => e.product)));
+        });
     }
     //!SECTION
     </script>
 <!-- 
-{% for i in items %}
-<script>
-
-
-    document.querySelector('#{{ i.product.handle }}-deleteBtn').addEventListener('click', function (e) {
-        e.preventDefault();
-
-        fetch('delete/', {
-            method: 'DELETE',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': csrftoken
-            },
-            body: JSON.stringify({
-                product: '{{ i.product.handle }}',
-            })
-        })
-            .then(res => res.json())
-            .then(data => {
-                alert(data.message);
-                window.location.href = data.redirect_url;
-            });
-    });
-</script>
-{% endfor %}
 <script>
     document.querySelectorAll('#checkbox').forEach(checkbox => {
         checkbox.addEventListener('change', function () {

@@ -6,11 +6,10 @@ import {
 export function convertToJsObject(item) {
   let ret = new Object();
   for (const frontEndKey of Object.keys(mapper)) {
-    ret[frontEndKey] = item[mapper[frontEndKey]]
+    ret[frontEndKey] = item[mapper[frontEndKey]];
   }
   return ret;
 }
-
 
 // 아이템의 초기값을 가지고 테이블 한 행을 만든다.
 export function itemHtmlMapper(item) {
@@ -91,4 +90,16 @@ export function getChildDictFrom(element) {
   return Object.fromEntries(
     order.map((key) => [key, element.querySelector(`[key=${key}]`)])
   );
+}
+
+export function totalSum(products) {
+  return products
+    .filter((e) => e.checked)
+    .reduce(
+      (partialSum, product) => {
+        return partialSum +
+        parseInt(product.productPrice) * parseInt(product.quantity)
+      },
+      0
+    );
 }
