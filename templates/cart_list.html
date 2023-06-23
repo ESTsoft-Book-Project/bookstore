@@ -73,7 +73,7 @@
             // Push products into `tbody`
             for (let item of products) {
 
-                htmlElement = itemHtmlMapper(item);
+                const htmlElement = itemHtmlMapper(item);
                 elements.push(htmlElement);
                 document.querySelector("tbody").appendChild(
                     htmlElement
