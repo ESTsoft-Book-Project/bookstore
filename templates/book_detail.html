@@ -39,6 +39,20 @@
   <button type="submit" id="deleteBtn" class="hidden">삭제</button>
   <a href="/products/book/"><input type="button" value="목록"></a>
   
+  <!-- Comment -->
+  <h2>Comments</h2>
+  <ul id="commentList">
+      <!-- 기존 댓글 목록 -->
+  </ul>
+  
+  <form id="commentForm">
+      {% csrf_token %}
+      <textarea id="id_content" rows="4" cols="50"></textarea><br>
+      <button type="submit">Submit</button>
+  </form>
+
+ </div>
+
     <script>
         const csrftoken = getCookie('csrftoken');
         const deleteBtn = document.getElementById('deleteBtn');
@@ -142,6 +156,28 @@
                     window.location.href = data.redirect_url;
                 });
         });
-    </script>
-{% endblock content %}
 
+        document.getElementById('commentForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+        
+            var commentContent = document.getElementById('id_content').value;
+            var url = window.location.href;
+        
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}',
+                },
+                body: JSON.stringify({ content: commentContent }),
+            })
+                .then(response => response.text())  // Parse response as text
+                .then(data => {
+                    // Append the new comment to the comment list
+                    var commentList = document.getElementById('commentList');
+                    commentList.insertAdjacentHTML('beforeend', data);
+                })
+                .catch(error => console.log(error));
+        });
+    </script>
+{% endblock content %}q
