@@ -25,22 +25,22 @@
 {% load mathfilters %}
 <h1>Cart Items</h1>
 {% if items %}
-<table>
-    <thead>
-        <tr>
-            <td>선택</td>
-            <td>상품명</td>
-            <td>수량</td>
-            <td>금액</td>
-            <td>이미지</td>
-            <td>삭제</td>
-        </tr>
-    </thead>
-    <label for="cartItem">
+<label for="cartItem">
+    <table>
+        <thead>
+            <tr>
+                <td>선택</td>
+                <td>상품명</td>
+                <td>수량</td>
+                <td>금액</td>
+                <td>이미지</td>
+                <td>삭제</td>
+            </tr>
+        </thead>
         <tbody>
         </tbody>
-    </label>
-</table>
+    </table>
+</label>
 <p id="total">총액: 0원</p>
 {% else %}
 <h2>현재 장바구니에 담긴 상품이 없습니다.</h2>
@@ -48,7 +48,7 @@
 
 <script type="module">
     // SECTION - initial script
-    import {itemHtmlMapper} from "{% static 'js/cartItem.js' %}";
+    import { itemHtmlMapper } from "{% static 'js/cartItem.js' %}";
 
     const csrftoken = getCookie("csrftoken");
 
@@ -56,7 +56,7 @@
     let products = [];
     let elements = [];
 
-    fetch("product", {
+    await fetch("product", {
         method: "GET",
         headers: {
             "Content-Type": "application/json",
@@ -84,6 +84,15 @@
 
 
     //SECTION - Event Listeners
+    for (let element of elements) {
+        const checked = element.querySelector("[key='checked']");
+        const quantity = element.querySelector("input[type='number']");
+        const productPrice = element.querySelector()
+
+        element.querySelector("input[type='checkbox']").addEventListener('change', () => {
+            console.log();
+        });
+    }
     //!SECTION
 </script>
 <!-- 
