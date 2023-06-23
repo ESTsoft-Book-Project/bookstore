@@ -48,13 +48,15 @@
 
 <script type="module">
     // SECTION - initial script
-    import { itemHtmlMapper } from "{% static 'js/cartItem.js' %}";
+    import { itemHtmlMapper, getChildDictFrom, convertToJsObject } from "{% static 'js/cartItem.js' %}";
 
     const csrftoken = getCookie("csrftoken");
 
     // JsonResponse를 통해 상품리스트를 얻어온다.
-    let products = [];
-    let elements = [];
+    /*
+    [{product: {...}, element: <tr>...</tr>},...]
+    */
+    let items = [];
 
     await fetch("product", {
         method: "GET",
@@ -69,28 +71,33 @@
                 alert("상품 데이터가 올바르게 전달되지 않았습니다.");
                 window.location.href = "/";
             }
-            products = data.items;
             // Push products into `tbody`
-            for (let item of products) {
+            for (let item of data.items) {
 
-                const htmlElement = itemHtmlMapper(item);
-                elements.push(htmlElement);
+                const product = convertToJsObject(item);
+                const element = itemHtmlMapper(product);
                 document.querySelector("tbody").appendChild(
-                    htmlElement
+                    element
                 );
+                items.push({ product: product, element: element });
             }
         });
     //!SECTION
 
 
     //SECTION - Event Listeners
-    for (let element of elements) {
-        const checked = element.querySelector("[key='checked']");
-        const quantity = element.querySelector("input[type='number']");
-        const productPrice = element.querySelector()
+    for (let item of items) {
 
-        element.querySelector("input[type='checkbox']").addEventListener('change', () => {
-            console.log();
+        let children = getChildDictFrom(item.element);
+
+        children.quantity.addEventListener("input", (e) => {
+            e.preventDefault();
+            //NOTE - doesn't fetch, only change innerText of `productPrice`
+
+            const originalPrice = parseInt(item.product.productPrice);
+            const quantity = parseInt(children.quantity.value);
+
+            children.productPrice.innerText = `${originalPrice * quantity} 원`;
         });
     }
     //!SECTION

@@ -3,14 +3,22 @@ import {
   cartElementOrder as order,
 } from "./constants.js";
 
+export function convertToJsObject(item) {
+  let ret = new Object();
+  for (const frontEndKey of Object.keys(mapper)) {
+    ret[frontEndKey] = item[mapper[frontEndKey]]
+  }
+  return ret;
+}
+
+
 // 아이템의 초기값을 가지고 테이블 한 행을 만든다.
 export function itemHtmlMapper(item) {
   const tr = document.createElement("tr");
-  const handle = item[mapper.productHandle];
-  const name = item[mapper.productName];
+  const handle = item.productHandle;
 
   for (const key of order) {
-    const value = item[mapper[key]];
+    const value = item[key];
 
     const td = document.createElement("td");
     switch (key) {
@@ -39,21 +47,21 @@ export function itemHtmlMapper(item) {
         td.innerHTML = `
         <a 
           key="${key}"
-          href="${item[mapper.bookUrl]}">
-          ${name}
+          href="${item.bookUrl}">
+          ${item.productName}
         </a>
         `;
         break;
       case "productPrice":
         td.setAttribute("key", key);
         td.id = `price-${handle}`;
-        td.innerText = `${value} 원`;
+        td.innerText = `${value * item.quantity} 원`;
         break;
       case "imageUrl":
         td.innerHTML = `
         <img 
           key="${key}"
-          src="${item[mapper.imageUrl]}" 
+          src="${item.imageUrl}" 
           alt="image-${handle}"
           width="350"
         >
@@ -77,4 +85,10 @@ export function itemHtmlMapper(item) {
   }
 
   return tr;
+}
+
+export function getChildDictFrom(element) {
+  return Object.fromEntries(
+    order.map((key) => [key, element.querySelector(`[key=${key}]`)])
+  );
 }
