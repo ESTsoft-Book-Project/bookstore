@@ -89,9 +89,9 @@
     for (let item of items) {
 
         let children = getChildDictFrom(item.element);
+        // console.log(children);
 
         children.quantity.addEventListener("input", (e) => {
-            e.preventDefault();
             //NOTE - doesn't fetch, only change innerText of `productPrice`
 
             const originalPrice = parseInt(item.product.productPrice);
@@ -99,37 +99,33 @@
 
             children.productPrice.innerText = `${originalPrice * quantity} 원`;
         });
+
+        children.delete.addEventListener("click", (e) => {
+            e.preventDefault();
+
+            fetch('delete/', {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrftoken
+                },
+                body: JSON.stringify({
+                    product: item.product.productHandle,
+                })
+            })
+                .then(res => res.json())
+                .then(data => {
+                    alert(data.message);
+                    window.location.href = data.redirect_url;
+                });
+        });
     }
     //!SECTION
-</script>
+    </script>
 <!-- 
 {% for i in items %}
 <script>
 
-    document.querySelector('#{{ i.product.handle }}-quantity').addEventListener('input', function (e) {
-        e.preventDefault();
-
-        fetch('update/', {
-            method: 'PATCH',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': csrftoken
-            },
-            body: JSON.stringify({
-                product: '{{ i.product.handle }}',
-                quantity: document.querySelector('#{{ i.product.handle }}-quantity').value
-            })
-        })
-            .then(res => res.json())
-            .then(data => {
-                if (data.status_code == 200) {
-                    window.location.href = data.redirect_url;
-                } else {
-                    alert(data.message);
-                    window.location.href = data.redirect_url;
-                }
-            });
-    });
 
     document.querySelector('#{{ i.product.handle }}-deleteBtn').addEventListener('click', function (e) {
         e.preventDefault();
