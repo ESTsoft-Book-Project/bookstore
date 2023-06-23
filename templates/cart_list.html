@@ -36,22 +36,10 @@
             <td>삭제</td>
         </tr>
     </thead>
-    <tbody>
-        {% for i in items %}
-        <tr>
-            <td><input id="checkbox" type="checkbox" value="{{ i.quantity|mul:i.product.price }}">
-            </td>
-            <td id="{{ i.product.handle }}">{{ i.product }}</td>
-            <td>
-                <input id="{{ i.product.handle }}-quantity" type="number" value="{{ i.quantity }}">
-            </td>
-            <td id="{{ i.product.handle }}-price">{{ i.quantity|mul:i.product.price }} 원</td>
-            <td>
-                <button id="{{ i.product.handle }}-deleteBtn" type="submit">삭제</button>
-            </td>
-        </tr>
-        {% endfor %}
-    </tbody>
+    <label for="cartItem">
+        <tbody>
+        </tbody>
+    </label>
 </table>
 <p id="total">총액: 0원</p>
 {% else %}
@@ -59,13 +47,15 @@
 {% endif %}
 
 <script type="module">
-    // initial script
+    // SECTION - initial script
     import {itemHtmlMapper} from "{% static 'js/cartItem.js' %}";
 
     const csrftoken = getCookie("csrftoken");
 
     // JsonResponse를 통해 상품리스트를 얻어온다.
     let products = [];
+    let elements = [];
+
     fetch("product", {
         method: "GET",
         headers: {
@@ -82,15 +72,21 @@
             products = data.items;
             // Push products into `tbody`
             for (let item of products) {
+
+                htmlElement = itemHtmlMapper(item);
+                elements.push(htmlElement);
                 document.querySelector("tbody").appendChild(
-                    itemHtmlMapper(item)
+                    htmlElement
                 );
             }
         });
+    //!SECTION
 
 
+    //SECTION - Event Listeners
+    //!SECTION
 </script>
-
+<!-- 
 {% for i in items %}
 <script>
 
@@ -153,5 +149,5 @@
             document.querySelector('#total').textContent = `총액: ${total}원`;
         });
     });
-</script>
+</script> -->
 {% endblock content %}

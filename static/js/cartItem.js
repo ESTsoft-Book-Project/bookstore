@@ -9,15 +9,19 @@ export function itemHtmlMapper(item) {
   const handle = item[mapper.productHandle];
   const name = item[mapper.productName];
 
-  for (const frontKey of order) {
-    const backKey = mapper[frontKey];
-    console.log(`${frontKey}: ${item[backKey]}`);
+  for (const key of order) {
+    const value = item[mapper[key]];
 
     const td = document.createElement("td");
-    switch (frontKey) {
+    switch (key) {
       case "checked":
         td.innerHTML = `
-        <input id="checkbox-${handle}" type="checkbox">
+        <input 
+          id="checkbox-${handle}" 
+          type="checkbox" 
+          label="cartItem"
+          ${value ? "checked" : ""}
+        >
         `;
         break;
       case "quantity":
@@ -25,7 +29,8 @@ export function itemHtmlMapper(item) {
         <input 
           id="quantity-${handle}" 
           type="number" 
-          value="${item[mapper.quantity]}">
+          label="cartItem"
+          value="${value}">
         `;
         break;
       case "productName":
@@ -37,7 +42,7 @@ export function itemHtmlMapper(item) {
         break;
       case "productPrice":
         td.id = `price-${handle}`;
-        td.innerText = `${item[mapper.productPrice]} 원`;
+        td.innerText = `${value} 원`;
         break;
       case "imageUrl":
         td.innerHTML = `
@@ -54,10 +59,9 @@ export function itemHtmlMapper(item) {
         `;
         break;
       default:
-        console.error(`${frontKey} does not match any predefined mapper!`);
+        console.error(`${key} does not match any predefined mapper!`);
         break;
     }
-    console.log(td);
     tr.appendChild(td);
   }
 
