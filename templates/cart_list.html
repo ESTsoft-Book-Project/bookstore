@@ -25,22 +25,22 @@
 {% load mathfilters %}
 <h1>Cart Items</h1>
 {% if items %}
-<table>
-    <thead>
-        <tr>
-            <td>선택</td>
-            <td>상품명</td>
-            <td>수량</td>
-            <td>금액</td>
-            <td>이미지</td>
-            <td>삭제</td>
-        </tr>
-    </thead>
-    <label for="cartItem">
+<label for="cartItem">
+    <table>
+        <thead>
+            <tr>
+                <td>선택</td>
+                <td>상품명</td>
+                <td>수량</td>
+                <td>금액</td>
+                <td>이미지</td>
+                <td>삭제</td>
+            </tr>
+        </thead>
         <tbody>
         </tbody>
-    </label>
-</table>
+    </table>
+</label>
 <p id="total">총액: 0원</p>
 {% else %}
 <h2>현재 장바구니에 담긴 상품이 없습니다.</h2>
@@ -48,15 +48,34 @@
 
 <script type="module">
     // SECTION - initial script
-    import {itemHtmlMapper} from "{% static 'js/cartItem.js' %}";
+    import { 
+        itemHtmlMapper, 
+        getChildDictFrom, 
+        convertToJsObject, 
+        totalSum } 
+    from "{% static 'js/cartItem.js' %}";
 
     const csrftoken = getCookie("csrftoken");
+    const $total = document.querySelector("#total");
+    let total = {
+        value: 0,
+        getValue: function() { return this.value; },
+        setValue: function(v) {
+            this.value = v;
+            this.updateDom();
+        },
+        updateDom: function() {
+            $total.innerText = `총액: ${this.value} 원`;
+        }
+    };
 
     // JsonResponse를 통해 상품리스트를 얻어온다.
-    let products = [];
-    let elements = [];
+    /*
+    [{product: {...}, element: <tr>...</tr>},...]
+    */
+    let items = [];
 
-    fetch("product", {
+    await fetch("product", {
         method: "GET",
         headers: {
             "Content-Type": "application/json",
@@ -69,85 +88,69 @@
                 alert("상품 데이터가 올바르게 전달되지 않았습니다.");
                 window.location.href = "/";
             }
-            products = data.items;
             // Push products into `tbody`
-            for (let item of products) {
+            for (let item of data.items) {
 
-                const htmlElement = itemHtmlMapper(item);
-                elements.push(htmlElement);
+                const product = convertToJsObject(item);
+                const element = itemHtmlMapper(product);
                 document.querySelector("tbody").appendChild(
-                    htmlElement
+                    element
                 );
+                items.push({ product: product, element: element });
             }
+
+            const sum = totalSum(items.map((e) => e.product));
+            total.setValue(sum);
         });
     //!SECTION
 
 
     //SECTION - Event Listeners
-    //!SECTION
-</script>
-<!-- 
-{% for i in items %}
-<script>
+    for (let item of items) {
 
-    document.querySelector('#{{ i.product.handle }}-quantity').addEventListener('input', function (e) {
-        e.preventDefault();
+        let children = getChildDictFrom(item.element);
+        // console.log(children);
 
-        fetch('update/', {
-            method: 'PATCH',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': csrftoken
-            },
-            body: JSON.stringify({
-                product: '{{ i.product.handle }}',
-                quantity: document.querySelector('#{{ i.product.handle }}-quantity').value
+        children.quantity.addEventListener("input", (e) => {
+            //NOTE - doesn't fetch, only change innerText of `productPrice`
+
+            const originalPrice = parseInt(item.product.productPrice);
+            const quantity = parseInt(children.quantity.value);
+            const resultPrice = originalPrice * quantity;
+
+            item.product.quantity = quantity;
+            children.productPrice.innerText = `${resultPrice} 원`;
+
+            total.setValue(totalSum(items.map((e) => e.product)));
+        });
+
+        children.delete.addEventListener("click", (e) => {
+            e.preventDefault();
+
+            fetch('delete/', {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrftoken
+                },
+                body: JSON.stringify({
+                    product: item.product.productHandle,
+                })
             })
-        })
-            .then(res => res.json())
-            .then(data => {
-                if (data.status_code == 200) {
-                    window.location.href = data.redirect_url;
-                } else {
+                .then(res => res.json())
+                .then(data => {
                     alert(data.message);
                     window.location.href = data.redirect_url;
-                }
-            });
-    });
-
-    document.querySelector('#{{ i.product.handle }}-deleteBtn').addEventListener('click', function (e) {
-        e.preventDefault();
-
-        fetch('delete/', {
-            method: 'DELETE',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': csrftoken
-            },
-            body: JSON.stringify({
-                product: '{{ i.product.handle }}',
-            })
-        })
-            .then(res => res.json())
-            .then(data => {
-                alert(data.message);
-                window.location.href = data.redirect_url;
-            });
-    });
-</script>
-{% endfor %}
-<script>
-    document.querySelectorAll('#checkbox').forEach(checkbox => {
-        checkbox.addEventListener('change', function () {
-            var total = 0;
-
-            document.querySelectorAll('#checkbox').forEach(checkbox => {
-                if (checkbox.checked) {
-                    total += parseInt(checkbox.value);
-                }
-            });
-            document.querySelector('#total').textContent = `총액: ${total}원`;
+                });
         });
-    });
-</script> -->
+
+        children.checked.addEventListener("change", () => {
+            item.product.checked = children.checked.checked;
+
+            // sum of checked product's price
+            total.setValue(totalSum(items.map((e) => e.product)));
+        });
+    }
+    //!SECTION
+    </script>
 {% endblock content %}
