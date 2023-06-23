@@ -3,6 +3,13 @@ import {
   cartElementOrder as order,
 } from "./constants.js";
 
+/**
+ * 
+ * @param {JSON} item 
+ * @returns 장고 키값으로 이루어진 JSON 객체를 이쁘게 만들어준다.
+ * 
+ * 참고: `static/js/constants.js` :: `elementResponseMapper`
+ */
 export function convertToJsObject(item) {
   let ret = new Object();
   for (const frontEndKey of Object.keys(mapper)) {
@@ -11,7 +18,9 @@ export function convertToJsObject(item) {
   return ret;
 }
 
-// 아이템의 초기값을 가지고 테이블 한 행을 만든다.
+/**  
+ * 아이템의 초기값을 가지고 테이블 한 행을 만든다.
+*/
 export function itemHtmlMapper(item) {
   const tr = document.createElement("tr");
   const handle = item.productHandle;
@@ -86,12 +95,19 @@ export function itemHtmlMapper(item) {
   return tr;
 }
 
+/**
+ * HTML 원소의 자식들을 Object로 반환한다. 
+ * @param {HTMLElement} element 
+ */
 export function getChildDictFrom(element) {
   return Object.fromEntries(
     order.map((key) => [key, element.querySelector(`[key=${key}]`)])
   );
 }
 
+/**
+ * sum of checked products price multiplied by quantity
+ */
 export function totalSum(products) {
   return products
     .filter((e) => e.checked)
