@@ -42,29 +42,32 @@
     </table>
 </label>
 <p id="total">총액: 0원</p>
+<button id="order-btn">주문하기</button>
 {% else %}
 <h2>현재 장바구니에 담긴 상품이 없습니다.</h2>
 {% endif %}
 
 <script type="module">
+
     // SECTION - initial script
-    import { 
-        itemHtmlMapper, 
-        getChildDictFrom, 
-        convertToJsObject, 
-        totalSum } 
-    from "{% static 'js/cartItem.js' %}";
+    import {
+        itemHtmlMapper,
+        getChildDictFrom,
+        convertToJsObject,
+        totalSum
+    }
+        from "{% static 'js/cartItem.js' %}";
 
     const csrftoken = getCookie("csrftoken");
     const $total = document.querySelector("#total");
     let total = {
         value: 0,
-        getValue: function() { return this.value; },
-        setValue: function(v) {
+        getValue: function () { return this.value; },
+        setValue: function (v) {
             this.value = v;
             this.updateDom();
         },
-        updateDom: function() {
+        updateDom: function () {
             $total.innerText = `총액: ${this.value} 원`;
         }
     };
@@ -151,6 +154,10 @@
             total.setValue(totalSum(items.map((e) => e.product)));
         });
     }
+
+    document.getElementById("order-btn").addEventListener("click", function () {
+        window.location.href = "/carts/order_detail";
+    });
     //!SECTION
-    </script>
+</script>
 {% endblock content %}

@@ -114,7 +114,7 @@ export function totalSum(products) {
     .reduce(
       (partialSum, product) => {
         return partialSum +
-        parseInt(product.productPrice) * parseInt(product.quantity)
+          parseInt(product.productPrice) * parseInt(product.quantity)
       },
       0
     );

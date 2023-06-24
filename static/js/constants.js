@@ -17,3 +17,11 @@ export const cartElementOrder = [
   "imageUrl",
   "delete",
 ];
+
+export const orderElementOrder = [
+  "productName",
+  "quantity",
+  "productPrice",
+  "imageUrl",
+  "product_total"
+];

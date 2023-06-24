@@ -65,6 +65,39 @@ def product_list(request) -> JsonResponse:
 
 
 @login_required(login_url="/users/signin")
+@require_http_methods(['GET'])
+def order_detail(request) -> HttpResponse:
+    user = Cart.objects.filter(user=request.user).values("user_id")
+    return render(request, "order_detail.html", {"items": user})
+
+
+@require_http_methods(['GET'])
+def order_product_detail(request) -> JsonResponse:
+    """returns: JsonResponse that contains products"""
+    filtered = Cart.objects.filter(user=request.user, checked=True)
+
+    items = filtered.values(
+                "checked",
+                "user_id",
+                "quantity", 
+                "product__handle",
+                "product__name",
+                "product__price")
+
+    image_urls = [cart.product.get_image_url() for cart in filtered]
+    book_urls = [cart.product.get_absolute_url() for cart in filtered]
+
+
+    for i, item in enumerate(items):
+        item['image_url'] = image_urls[i]
+        item['book_url'] = book_urls[i]
+
+    print(items)
+
+    return JsonResponse({"items": list(items), "statusCode": 200}, safe=False)
+
+
+@login_required(login_url="/users/signin")
 def cart_update(request):
     if request.method == 'PATCH':
         item = Cart.objects.get(user = request.user, product = get_object_or_404(Product, handle = json.loads(request.body).get("product")))
