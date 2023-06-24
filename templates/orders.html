@@ -26,7 +26,7 @@
             <td class="border border-gray-300 px-4 py-2">{% if purchase.completed %}Yes{% else %}No{% endif %}</td>
             <td class="border border-gray-300 px-4 py-2">
               {% if purchase.completed %}
-                <form action="{% url 'purchases:my-order-cancel' purchase.id %}" method="post">
+                <form action="{% url 'purchases:orders' purchase.id %}" method="post">
                   {% csrf_token %}
                   <button type="submit" class="cancel-link" data-purchase-id="{{ purchase.id }}">Cancel</button>
                 </form>
