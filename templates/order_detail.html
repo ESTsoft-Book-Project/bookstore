@@ -1,0 +1,125 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Book List{% endblock title %}
+
+
+{% block headScripts %}
+{% endblock headScripts %}
+
+
+{% block stylesheet %}
+<style>
+    table {
+        border-collapse: collapse;
+    }
+
+    th,
+    td {
+        border: 1px solid black;
+    }
+</style>
+{% endblock stylesheet %}
+
+
+{% block content %}
+{% load mathfilters %}
+<h1>주문 상세 페이지</h1>
+{% if items %}
+<table>
+    <thead>
+        <tr>
+            <td>상품명</td>
+            <td>수량</td>
+            <td>금액</td>
+            <td>이미지</td>
+            <td>상품별 총 금액</td>
+        </tr>
+    </thead>
+    <label for="cartItem">
+        <tbody>
+
+        </tbody>
+    </label>
+</table>
+<p id="total">총액: 0원</p>
+
+<h3>주문자 정보</h3>
+<p>user : {{ user }}</p>
+<p>nickname: {{ user.nickname }}</p>
+<p>email : {{ user.email }}</p>
+<h3>결제수단 선택</h3>
+<input type="submit" id="stripe" name="stripe" value="stripe" />
+<input type="submit" id="kakaoPay" name="kakaoPay" value="kakaoPay" /> <br><br>
+<button id="cancel-btn">결제 취소</button>
+
+
+{% else %}
+<h2>현재 장바구니에 담긴 상품이 없습니다.</h2>
+{% endif %}
+
+<script type="module">
+    // SECTION - initial script
+    import {
+        itemHtmlMapper,
+        getChildDictFrom,
+        convertToJsObject,
+        totalSum
+    }
+        from "{% static 'js/orderItem.js' %}";
+
+    const csrftoken = getCookie("csrftoken");
+    const $total = document.querySelector("#total");
+    let total = {
+        value: 0,
+        getValue: function () { return this.value; },
+        setValue: function (v) {
+            this.value = v;
+            this.updateDom();
+        },
+        updateDom: function () {
+            $total.innerText = `총액: ${this.value} 원`;
+        }
+    };
+
+
+    // JsonResponse를 통해 상품리스트를 얻어온다.
+    let items = [];
+
+    await fetch("order_product_detail", {
+        method: "GET",
+        headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": csrftoken
+        },
+    })
+        .then(res => res.json())
+        .then(data => {
+            if (data.statusCode !== 200) {
+                alert("상품 데이터가 올바르게 전달되지 않았습니다.");
+                window.location.href = "/";
+            }
+            // Push products into `tbody`
+            for (let item of data.items) {
+
+                const product = convertToJsObject(item);
+                const element = itemHtmlMapper(product);
+                document.querySelector("tbody").appendChild(
+                    element
+                );
+                items.push({ product: product, element: element });
+            }
+
+            const sum = totalSum(items.map((e) => e.product));
+            total.setValue(sum);
+        });
+    //!SECTION
+
+    //!SECTION
+    document.getElementById("cancel-btn").addEventListener("click", function () {
+        window.location.href = "/carts";
+    });
+
+    //SECTION - Event Listeners
+</script>
+
+{% endblock content %}
