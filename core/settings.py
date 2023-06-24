@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     'django.contrib.sites',
     "users",
+    "rest_framework",
     "products",
     "purchases",
     "carts",
@@ -172,6 +173,7 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # Tell Django to use our custom user model instead of the built-in User model.
 AUTH_USER_MODEL = "users.User"
+
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')

@@ -76,7 +76,7 @@
 
         document.getElementById('purchaseBtn').addEventListener('click', function () {
             const handle = '{{ book.handle }}';
-            const url = `/purchases/start/`;
+            const url = `/purchases/stripe_start`;
             fetch(url, {
                 method: 'POST',
                 headers: {
