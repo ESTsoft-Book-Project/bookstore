@@ -105,28 +105,42 @@ def purchase_order_view(request):
 
 
 @login_required
-def kakaopay_start_view(request):
+def kakaopay_start(request):
     BASE_ENDPOINT = f'http://{request.get_host()}'
     data = json.loads(request.body)
-    handle = data.get('handle')
-
+    
+    items = data.get('items')
+    
     if not request.method == "POST":
         return HttpResponseBadRequest()
     if not request.user.is_authenticated:
         return HttpResponseBadRequest()
     
-    product = Product.objects.get(handle=handle)
-    if product is None:
-        return HttpResponseBadRequest()
+    products = []
+    total_price = 0
+    items_count = len(items)
+    purchase = Purchase.objects.create(user=request.user)
+    for item in items:
+        product = Product.objects.get(handle=item['product__handle'])
+        products.append(product)
+        total_price += product.price
+        purchase.products.add(product)
+    
+    if items_count > 1:
+        order_name = f'{products[0].name} 외 {items_count - 1}'
+    else:
+        order_name = products[0].name
+    
+    purchase.order_name = order_name
+    purchase.kakaopay_price = total_price
 
-    purchase = Purchase.objects.create(user=request.user, product=product)
     request.session['purchase_id'] = purchase.id
 
     success_path = reverse("purchases:kakaopay_success")
     if not success_path.startswith("/"):
         success_path = f"/{success_path}"
 
-    stopped_path = reverse("purchases:kakaopay_stop")
+    stopped_path = reverse("purchases:kakaopay_stopped")
     if not stopped_path.startswith("/"):
         stopped_path = f"/{stopped_path}"
 
@@ -142,9 +156,9 @@ def kakaopay_start_view(request):
         'cid': 'TC0ONETIME', # 테스트용 기본 가맹점 키 값
         'partner_order_id': purchase.id,
         'partner_user_id': 'partner_user_id', # 테스트용 기본 데이터
-        'item_name': product.name,
+        'item_name': order_name,
         'quantity': 1,
-        'total_amount': int(product.price),
+        'total_amount': int(total_price),
         'tax_free_amount': 0,
         'approval_url': success_url,
         'fail_url': stopped_url,
@@ -155,13 +169,13 @@ def kakaopay_start_view(request):
     result = res.json()
     
     purchase.kakaopay_checkout_tid = result['tid']
-    purchase.kakaopay_price = product.price
+    
     purchase.save()
     return JsonResponse({'redirect': result['next_redirect_pc_url']})
 
 
 @login_required
-def kakaopay_success_view(request):
+def kakaopay_success(request):
     purchase_id = request.session.get('purchase_id')
     if not(purchase_id):
         return HttpResponseBadRequest()
@@ -198,12 +212,13 @@ def kakaopay_success_view(request):
     
 
 @login_required
-def kakaopay_stop_view(request):
+def kakaopay_stopped(request):
     purchase_id = request.session.get("purchase_id")
     if purchase_id:
         purchase = Purchase.objects.get(id=purchase_id)
         purchase.delete()
         del request.session['purchase_id']
+        # 수정 예정
         return redirect(purchase.product.get_absolute_url())
     return HttpResponse("Purchase not found")
 
