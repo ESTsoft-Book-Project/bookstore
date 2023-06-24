@@ -10,4 +10,5 @@ urlpatterns = [
     path('kakaopay_start/', views.kakaopay_start_view, name='kakaopay_start'),
     path('kakaopay_success/', views.kakaopay_success_view, name='kakaopay_success'),
     path('kakaopay_stop/', views.kakaopay_stop_view, name='kakaopay_stop'),
+    path('cancel/<int:purchase_id>/', views.purchase_cancel, name='order-cancle'),
 ]
