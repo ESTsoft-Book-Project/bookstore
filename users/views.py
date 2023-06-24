@@ -11,6 +11,7 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
 from .serializers import UserSerializer
+from .models import User
 import json
 from django.views.decorators.csrf import csrf_exempt
 
@@ -45,28 +46,33 @@ def signin(request):
     elif request.method == 'GET':
         return render(request, 'signin.html')
 
-
+@api_view(["GET", "PATCH"])
 @login_required(login_url="/users/signin/")
 def profile(request):
-    if request.method == "PATCH":
-        user = request.user
-        user.email = json.loads(request.body).get("email", user.email)
-        user.nickname = json.loads(request.body).get("nickname", user.nickname)
-        update_password = json.loads(request.body).get("password")
-        if update_password:
-            user.set_password(update_password)
-            update_session_auth_hash(request, user)
-        user.save()
-        return JsonResponse({"message": "회원 정보 수정이 완료되었습니다."})
-    else:
-        return render(request, "profile.html", {"user": request.user})
+    user = request.user
+    if request.method == "GET":
+        serializer = UserSerializer(user)
+        return render(request, "profile.html", {"user": serializer.data})
+    elif request.method == "PATCH":
+        serializer = UserSerializer(user, data = request.data, partial = True)
+        if serializer.is_valid():
+            for field in request.data.keys():
+                if field != "password":
+                    setattr(user, field, request.data[field])
+                else:
+                    user.set_password(request.data[field])
+            user.save()
+            return Response({"result": True, "statusCode": 200, "message": "회원 정보 수정이 완료되었습니다."})
+        else:
+            return Response({"result": False, "statusCode": 400, "message": "에러가 발생했습니다."})
 
+@api_view(["DELETE"])
 @login_required(login_url="/users/signin/")
 def delete_user(request):
     user = request.user
     user.delete()
     logout(request)
-    return JsonResponse({"message": "회원 탈퇴가 완료되었습니다."})
+    return Response({"message": "회원 탈퇴가 완료되었습니다."})
 
 
 @api_view(["POST"])
