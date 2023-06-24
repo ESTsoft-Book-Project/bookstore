@@ -15,7 +15,7 @@
       <tbody>
         {% for purchase in purchases reversed %}
           <tr>
-            <td class="border border-gray-300 px-4 py-2">{{ purchase.product.name }}</td>
+            <td class="border border-gray-300 px-4 py-2">{{ purchase.order_name }}</td>
             <td class="border border-gray-300 px-4 py-2">
             {% if purchase.stripe_price == 0 %}
             {{ purchase.kakaopay_price }}원
