@@ -209,7 +209,7 @@ def kakaopay_stop_view(request):
 
 
 @login_required
-def purchase_cancel_view(request, purchase_id):
+def purchase_cancel(request, purchase_id):
     purchase = get_object_or_404(Purchase, id=purchase_id, user=request.user, completed=True)
     if request.method == 'POST':
         purchase.completed = False
