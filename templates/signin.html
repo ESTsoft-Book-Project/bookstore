@@ -96,10 +96,10 @@
       <form id="login_form" method="post">
         {% csrf_token %}
         <label for="email">이메일 주소:</label>
-        <input type="email" id="email" name="email" />
+        <input type="email" id="email" name="email" autocomplete="current-email"/>
 
         <label for="password">비밀번호:</label>
-        <input type="password" id="password" name="password" />
+        <input type="password" id="password" name="password" autocomplete="current-password"/>
 
         <button type="submit">로그인</button>
       </form>
@@ -116,36 +116,55 @@
     </div>
 
     <script>
+      function getCookie(name) {
+        var cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+          var cookies = document.cookie.split(';');
+          for (var i = 0; i < cookies.length; i++) {
+            var cookie = cookies[i].trim();
+            // Does this cookie string begin with the name we want?
+            if (cookie.substring(0, name.length + 1) === name + '=') {
+              cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+              break;
+            }
+          }
+        }
+        return cookieValue;
+      }
+    
       document.getElementById('login_form').addEventListener('submit', function (e) {
         e.preventDefault();
-        var email = document.getElementById('email').value;
-        var password = document.getElementById('password').value;
-
-        const formData = new URLSearchParams();
-        formData.append('email', email);
-        formData.append('password', password);
-
-        fetch('{% url "users:signin" %}', {
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+        
+        const data = {
+          email: email,
+          password: password,
+        };
+        
+        fetch('/users/signin/', {
           method: 'POST',
           headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-            'X-CSRFToken': getCookie("csrftoken")
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken'),
           },
-          body: formData.toString()
+          body: JSON.stringify(data),
         })
           .then(response => response.json())
           .then(data => {
+            
             console.log(data);
-            console.log(data.status);
-            if (data.statusCode == 200) {
-              window.location.href = data.redirect;
-            } else {
-              alert('아이디 또는 비밀번호가 맞지 않습니다');
+            console.log(data.status)
+            ;
+            if (data.status === 200 ) {
+            window.location.href = data.redirect;
+            } 
+              else {
+                alert(data.message);
+                      window.location.href = '/users/signin/';
             }
           })
-          .catch(
-            error => console.log(error)
-          );
+          .catch(error => console.log(error));
       });
     </script> 
   {% endif %}
