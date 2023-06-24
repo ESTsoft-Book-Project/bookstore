@@ -1,13 +1,13 @@
-from django.http import JsonResponse
-from django.shortcuts import render
-from .forms import ProductForm
-from .models import Product
-from django.shortcuts import render, redirect ,get_object_or_404
+import json
+import base64
+from django.shortcuts import render, get_object_or_404
 from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
 from slugify import slugify
+from django.core.files.base import ContentFile
+from .forms import ProductForm
 from .models import Product
-import json
+
 
 def book_list(request):
     books = Product.objects.all()
@@ -17,21 +17,32 @@ def book_detail(request, handle):
     book = get_object_or_404(Product, handle=handle)
     return render(request, 'book_detail.html', {'book': book})
 
+
+def new_id():
+    """
+    get unique id from last id of the models
+    """
+    last_product = Product.objects.order_by('id').last()
+    if last_product:
+        return last_product.pk + 1
+    return 1
+# end def
+
+
 @login_required(login_url="/users/signin/")
 def create_product(request):
     if request.method == "POST":
         request_data = json.loads(request.body)
-        request_data["handle"] = slugify(request_data["name"])
-        handle = request_data["handle"]
-        num = 1
-        while Product.objects.filter(handle=handle).exists():
-            name = f'{request_data["name"]}-{num}'
-            request_data["handle"] = slugify(name)
-            handle = request_data["handle"]
-            num += 1
+        image_data = request_data.get('image')
+        handle = slugify(f"{request_data['name']}-{new_id()}")
+
         form = ProductForm(request_data)
         if form.is_valid():
             product = form.save(commit=False)
+            if image_data:
+                image_data = base64.b64decode(image_data)
+                product.image.save(handle, ContentFile(image_data), save=False)
+            product.handle = handle
             product.user = request.user
             product.save()
             return JsonResponse({"message": "신규 도서 등록이 완료되었습니다.", "redirect_url": "/products/book/"})
@@ -39,7 +50,7 @@ def create_product(request):
             return JsonResponse({"message": form.errors.as_json()})
     else:
         return render(request, 'create_product.html')
-    
+
 @login_required(login_url="/users/signin/")
 def update_product(request, handle):
     book = get_object_or_404(Product, handle=handle)
@@ -47,20 +58,19 @@ def update_product(request, handle):
 
     if request.method == "PATCH":
         request_data = json.loads(request.body)
-        request_data["handle"] = slugify(request_data["name"])
+        request_data["handle"] = slugify(f"{request_data['name']}-{new_id()}")
         handle = request_data["handle"]
-        num = 1
-        while Product.objects.filter(handle=handle).exists():
-            name = f'{request_data["name"]}-{num}'
-            request_data["handle"] = slugify(name)
-            handle = request_data["handle"]
-            num += 1
+
         form = ProductForm(request_data, instance=book)
         if form.is_valid():
             product = form.save(commit=False)
-            product.user = request.user   
-            product.save()
-            return JsonResponse({"message": "도서 정보가 수정되었습니다.", 'redirect': '/products/book/'}, status = 200)
+            if book.user == request.user:
+                product.handle = handle
+                product.save()
+                return JsonResponse({"message": "도서 정보가 수정되었습니다.", 'redirect': '/products/book/'}, status = 200)
+            else:
+                return JsonResponse({"message": "상품을 수정할 권한이 없습니다.", 'redirect': '/products/book/'}, status=403)
+            
         else:
             if not isinstance(request_data["price"], int):
                 return JsonResponse({"message": "가격은 숫자로 입력해야 합니다.", 'redirect': ''}, status=400)

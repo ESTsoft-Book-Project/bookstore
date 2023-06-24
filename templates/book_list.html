@@ -10,6 +10,12 @@
   td {
     border: 1px solid black;
   }
+
+  img {
+    max-width: 100%;
+    height: 200px;
+  }
+
 </style>
 {% endblock stylesheet %}
 
@@ -22,8 +28,8 @@
         <td>책 제목</td>
         <td>가격</td>
         <td>등록자</td>
-        <td>등록일</td>
-        <td>수정일</td>
+        <td>이미지</td>
+        <td>재고</td>
       </tr>
     </thead>
     <tbody>
@@ -32,8 +38,9 @@
         <td><a href="{{ b.handle }}">{{ b.name }}</a></td>
         <td>{{ b.price }}</td>
         <td>{{ b.user }}</td>
-        <td>{{ b.created }}</td>
-        <td>{{ b.updated }}</td>
+        <td><img src="{{ b.get_image_url }}" alt=" Image">
+        <td>{{b.stock}}</td>
+        </td>
       </tr>
       {% endfor %}
     </tbody>
@@ -42,7 +49,3 @@
   <a href="/products/book/create"><input type="button" value="책 등록"></a>
 
 {% endblock content %}
-  
-<body></body>
-
-</html>

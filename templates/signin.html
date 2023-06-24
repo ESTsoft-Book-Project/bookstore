@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 {% block title %}로그인 페이지{% endblock title %}
 {% block stylesheet %}
+{% load socialaccount %}
 <style>
   body {
     font-family: Arial, sans-serif;
@@ -42,6 +43,43 @@
   .container-body button:hover {
     background-color: #45a049;
   }
+
+  a {
+    text-decoration-line: none;
+  }
+
+  .line {
+	display: flex;
+	flex-basis: 100%;
+	align-items: center;
+	color: rgba(0, 0, 0, 0.35);
+	font-size: 16px;
+	margin: 8px 0px;
+  }
+
+  .line::before,
+  .line::after {
+    content: "";
+    flex-grow: 1;
+    background: rgba(0, 0, 0, 0.35);
+    height: 1px;
+    font-size: 0px;
+    line-height: 0px;
+    border: 1px solid #ccc;
+  }
+
+  .line::before {
+    margin-right: 8px;
+  }
+
+  .line::after {
+    margin-left: 8px;
+  }
+
+  #social-login {
+    margin: 0px 26px;
+    width: 64px;
+  }
 </style>
 {% endblock stylesheet %}
 
@@ -65,6 +103,16 @@
 
         <button type="submit">로그인</button>
       </form>
+      <div class="line">소셜 로그인</div>
+      <a href="{% provider_login_url 'google' %}">
+        <img src='https://ifh.cc/g/oLRcTj.png' id="social-login">
+      </a>
+      <a href="{% provider_login_url 'kakao' %}">
+        <img src='https://ifh.cc/g/mB3Kw6.png' id="social-login">
+      </a>
+      <a href="{% provider_login_url 'naver' %}">
+        <img src='https://ifh.cc/g/tYm7MF.png' id="social-login">
+      </a>
     </div>
 
     <script>
