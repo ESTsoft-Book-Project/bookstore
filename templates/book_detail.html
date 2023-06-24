@@ -101,7 +101,18 @@
         });
 
         document.getElementById('kakaopayBtn').addEventListener('click', function () {
-            const handle = '{{ book.handle }}';
+            const item = [
+                {
+                    'product__handle': 'sangpum1-1',
+                    "user_id": "데이터",
+                    "quantity": "2"
+                },
+                {
+                    'product__handle': 'sangpum2-2',
+                    "user_id": "데이터",
+                    "quantity": "1"
+                }
+            ]
             const url = `/purchases/kakaopay_start/`;
             fetch(url, {
                 method: 'POST',
@@ -109,7 +120,7 @@
                     'X-CSRFToken': csrftoken,
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ handle: handle })
+                body: JSON.stringify({ 'items': item })
             })
                 .then(response => response.json())
                 .then(data => {
