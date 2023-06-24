@@ -1,4 +1,5 @@
 from django.shortcuts import render, redirect
+from django.shortcuts import get_object_or_404
 import requests
 from products.models import Product
 from .models import Purchase
@@ -12,46 +13,57 @@ stripe.api_key = STRIPE_SECRET_KEY
 KAKAOPAY_SECRET_KEY = config("KAKAOPAY_SECRET_KEY", default=None)
 kakaopay_admin_key = KAKAOPAY_SECRET_KEY
 
-
 @login_required
-def purchase_start_view(request):
+def stripe_start(request):
     
     BASE_ENDPOINT = f'http://{request.get_host()}'
     data = json.loads(request.body)
-    handle = data.get('handle')
+    items=data.get('items')
 
     if not request.method == "POST":
         return HttpResponseBadRequest()
     if not request.user.is_authenticated:
         return HttpResponseBadRequest()
     
-    product = Product.objects.get(handle=handle)
-    stripe_price_id = product.stripe_price_id
+    products=[]
+    for item in items:
+        product = Product.objects.get(handle=item['product__handle'])
+        products.append(product)
     
+    stripe_price_id_list=[]
+    for product in products:
+        stripe_price_id = product.stripe_price_id
+        stripe_price_id_list.append(stripe_price_id)
+
+
     if stripe_price_id is None:
         return HttpResponseBadRequest()
     
-    purchase = Purchase.objects.create(user=request.user, product=product)
+    purchase = Purchase.objects.create(user=request.user)
+    purchase.product.set(products)
     request.session['purchase_id'] = purchase.id
     
-    success_path = reverse("purchases:success")
+    success_path = reverse("purchases:stripe_success")
     if not success_path.startswith("/"):
         success_path = f"/{success_path}"
     
-    stopped_path = reverse("purchases:stopped")
+    stopped_path = reverse("purchases:stripe_stopped")
     if not stopped_path.startswith("/"):
         stopped_path = f"/{stopped_path}"
 
     success_url = f"{BASE_ENDPOINT}{success_path}"
     stopped_url = f"{BASE_ENDPOINT}{stopped_path}"
 
+    line_items = []
+    for stripe_price_id in stripe_price_id_list:
+        line_item = {
+            "price": stripe_price_id,
+            "quantity": 1,
+        }
+        line_items.append(line_item)
+
     checkout_session = stripe.checkout.Session.create(
-        line_items = [
-            {
-                "price": stripe_price_id,
-                "quantity":1,
-            }
-        ],
+        line_items=line_items,
         mode="payment",
         success_url=success_url,
         cancel_url=stopped_url
@@ -65,7 +77,7 @@ def purchase_start_view(request):
 from django.http import JsonResponse
 
 @login_required
-def purchase_success_view(request):
+def stripe_success(request):
     purchase_id = request.session.get("purchase_id")
     if purchase_id:
         purchase = Purchase.objects.get(id=purchase_id)
@@ -77,7 +89,7 @@ def purchase_success_view(request):
 
 
 @login_required
-def purchase_stopped_view(request):
+def stripe_stopped(request):
     purchase_id = request.session.get("purchase_id")
     if purchase_id:
         purchase = Purchase.objects.get(id=purchase_id)
@@ -194,3 +206,13 @@ def kakaopay_stop_view(request):
         del request.session['purchase_id']
         return redirect(purchase.product.get_absolute_url())
     return HttpResponse("Purchase not found")
+
+
+@login_required
+def purchase_cancel_view(request, purchase_id):
+    purchase = get_object_or_404(Purchase, id=purchase_id, user=request.user, completed=True)
+    if request.method == 'POST':
+        purchase.completed = False
+        purchase.save()
+        
+    return redirect('purchases:orders')
