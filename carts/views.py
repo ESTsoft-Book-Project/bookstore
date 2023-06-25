@@ -2,7 +2,7 @@ import re
 import json
 from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.decorators import login_required
-from django.urls import Resolver404
+from django.urls import Resolver404, reverse
 from django.views.decorators.http import require_http_methods
 from django.http import HttpResponse, JsonResponse
 from django.core.exceptions import FieldDoesNotExist
@@ -37,14 +37,14 @@ def cart_add(request):
 
 @login_required(login_url="/users/signin")
 @require_http_methods(['GET'])
-def cart_list(request) -> HttpResponse:
+def cart_view(request) -> HttpResponse:
     """returns: HttpResponse that will query products"""
     items = Cart.objects.filter(user = request.user)
     return render(request, "cart_list.html", {"items": items})
 
 
 @require_http_methods(['GET'])
-def product_list(request) -> JsonResponse:
+def cart_list(request) -> JsonResponse:
     """returns: JsonResponse that contains products"""
     filtered = Cart.objects \
         .filter(user=request.user)
@@ -69,13 +69,13 @@ def product_list(request) -> JsonResponse:
 
 @login_required(login_url="/users/signin")
 @require_http_methods(['GET'])
-def order_detail(request) -> HttpResponse:
+def checkout_view(request) -> HttpResponse:
     user = Cart.objects.filter(user=request.user).values("user_id")
-    return render(request, "order_detail.html", {"items": user})
+    return render(request, "checkout.html", {"items": user})
 
 
 @require_http_methods(['GET'])
-def order_product_detail(request) -> JsonResponse:
+def checkout_list(request) -> JsonResponse:
     """returns: JsonResponse that contains products"""
     filtered = Cart.objects.filter(user=request.user, checked=True)
 
@@ -151,7 +151,7 @@ def cart_update(request):
     return JsonResponse(
         {"message": "Succesfully update items",
         "statusCode": 200, 
-        "redirect_url": "order_detail"})
+        "redirect_url": reverse("carts:checkout_view")})
 
 
 
