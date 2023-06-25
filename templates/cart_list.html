@@ -156,7 +156,35 @@
     }
 
     document.getElementById("order-btn").addEventListener("click", function () {
-        window.location.href = "/carts/order_detail";
+        const update_url = "/carts/update/";
+
+        const create_patch_item = (op, path, value) => {
+            return {
+                'op': op,
+                'path': `${window.location.pathname}${path}`,
+                'value': value
+            };
+        }
+
+        const product_items = items.map((e) => e.product);
+        const patch_items = product_items.map((e) => create_patch_item('replace', e.productHandle, e));
+        
+        fetch(update_url, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrftoken
+            },
+            body: JSON.stringify(patch_items)
+        })
+            .then(res => res.json())
+            .then(data => {
+                if (data.statusCode === 200) {
+                    window.location.href = data.redirect_url;
+                } else {
+                    alert(data.message);
+                }
+            });
     });
     //!SECTION
 </script>
