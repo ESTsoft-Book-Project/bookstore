@@ -200,8 +200,8 @@
         })
             .then(response => response.json())
             .then(data => {
-                if (data.redirect) {
-                    window.location.href = data.redirect;
+                if (data.checkout_url) {
+                    window.location.href = data.checkout_url;
                 } else if (data.statusCode == 400) {
                     alert('잘못된 요청입니다');
                 } else if (data.statusCode == 401) {
