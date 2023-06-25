@@ -40,7 +40,7 @@ def stripe_start(request):
         return HttpResponseBadRequest()
     
     purchase = Purchase.objects.create(user=request.user)
-    purchase.product.set(products)
+    purchase.products.set(products)
     request.session['purchase_id'] = purchase.id
     
     success_path = reverse("purchases:stripe_success")

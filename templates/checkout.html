@@ -119,14 +119,6 @@
     });
 
     document.getElementById('kakaoPay').addEventListener('click', function () {
-        const item = [
-            {
-                 "product__handle": "상품1",
-            },
-            {
-                "product__handle": "상품2",
-           }
-        ]
         fetch("{% url 'purchases:kakaopay_start' %}", {
             method: 'POST',
             headers: {
@@ -151,5 +143,3 @@
     });
     //SECTION - Event Listeners
 </script>
-
-{% endblock content %}
