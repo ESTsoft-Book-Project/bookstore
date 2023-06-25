@@ -95,8 +95,6 @@ def order_product_detail(request) -> JsonResponse:
         item['image_url'] = image_urls[i]
         item['book_url'] = book_urls[i]
 
-    print(items)
-
     return JsonResponse({"items": list(items), "statusCode": 200}, safe=False)
 
 
