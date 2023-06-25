@@ -84,7 +84,7 @@
 
     // JsonResponse를 통해 상품리스트를 얻어온다.
     let items = [];
-    await fetch("order_product_detail", {
+    await fetch("{% url 'carts:checkout_list' %}", {
         method: "GET",
         headers: {
             "Content-Type": "application/json",
@@ -127,8 +127,7 @@
                 "product__handle": "상품2",
            }
         ]
-        const url = `/purchases/kakaopay_start/`;
-        fetch(url, {
+        fetch("{% url 'purchases:kakaopay_start' %}", {
             method: 'POST',
             headers: {
                 'X-CSRFToken': csrftoken,
