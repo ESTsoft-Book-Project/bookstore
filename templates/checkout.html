@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
-{% block title %}Book List{% endblock title %}
+{% block title %}Checkout List{% endblock title %}
 
 
 {% block headScripts %}
@@ -44,7 +44,7 @@
 <p id="total">총액: 0원</p>
 
 <h3>주문자 정보</h3>
-<p>user : {{ user }}</p>
+<p>user : <span id="user-info">{{ user }}</span></p>
 <p>nickname: {{ user.nickname }}</p>
 <p>email : {{ user.email }}</p>
 <h3>결제수단 선택</h3>
@@ -118,14 +118,36 @@
         window.location.href = "/carts";
     });
 
+    // kakaopay 결제
     document.getElementById('kakaoPay').addEventListener('click', function () {
+        const tbody = document.querySelector("tbody");  // tbody 요소 선택
+        const rows = tbody.querySelectorAll("tr");  // 테이블의 각 행(tr) 요소 선택
+        const userElement = document.getElementById("user-info");
+        const username = userElement.textContent;
+
+        const items = [];  // 책 정보를 저장할 배열
+
+        rows.forEach((row) => {
+            const book = {};  // 각 책의 정보를 저장할 객체
+
+            const quantityId = row.querySelector("a[key='quantity']").id;
+            const productName = quantityId.split('quantity-')[1];
+            const quantity = parseInt(row.querySelector("a[key='quantity']").textContent.trim(), 10);
+
+            book.product__handle = productName;
+            book.user_id = username
+            book.quantity = quantity;
+
+            items.push(book);
+        });
+
         fetch("{% url 'purchases:kakaopay_start' %}", {
             method: 'POST',
             headers: {
                 'X-CSRFToken': csrftoken,
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify(item)
+            body: JSON.stringify({ items: items })
         })
             .then(response => response.json())
             .then(data => {
@@ -141,5 +163,55 @@
             })
             .catch(error => console.log(error));
     });
+
+    // stripe 결제
+    document.getElementById('stripe').addEventListener('click', function () {
+        const tbody = document.querySelector("tbody");  // tbody 요소 선택
+        const rows = tbody.querySelectorAll("tr");  // 테이블의 각 행(tr) 요소 선택
+        const userElement = document.getElementById("user-info");
+        const username = userElement.textContent;
+
+        const items = [];  // 책 정보를 저장할 배열
+
+        rows.forEach((row) => {
+            const book = {};  // 각 책의 정보를 저장할 객체
+
+            const quantityId = row.querySelector("a[key='quantity']").id;
+            const productName = quantityId.split('quantity-')[1];
+            const quantity = parseInt(row.querySelector("a[key='quantity']").textContent.trim(), 10);
+            const productPrice = parseFloat(row.querySelector("[key='productPrice']").textContent.trim());
+
+            book.product__handle = productName;
+            book.price = productPrice;
+            book.user_id = username
+            book.quantity = quantity;
+
+            items.push(book);
+        });
+
+        fetch("{% url 'purchases:stripe_start' %}", {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrftoken,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ items: items })
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.checkout_url) {
+                    window.location.href = data.checkout_url;
+                } else if (data.statusCode == 400) {
+                    alert('잘못된 요청입니다');
+                } else if (data.statusCode == 401) {
+                    alert('로그인이 필요합니다');
+                } else if (data.statusCode == 403) {
+                    alert('구매할 수 없는 상품입니다');
+                }
+            })
+            .catch(error => console.log(error));
+    });
     //SECTION - Event Listeners
 </script>
+
+{% endblock content %}
