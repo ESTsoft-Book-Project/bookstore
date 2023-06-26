@@ -90,11 +90,13 @@ def stripe_success(request):
 
 @login_required
 def stripe_stopped(request):
+    BASE_ENDPOINT = f'http://{request.get_host()}'
     purchase_id = request.session.get("purchase_id")
     if purchase_id:
         purchase = Purchase.objects.get(id=purchase_id)
         del request.session['purchase_id']
-        return redirect(purchase.product.get_absolute_url())
+        cart_view_url = f'{BASE_ENDPOINT}{reverse("carts:view")}'
+        return redirect(cart_view_url)
     return HttpResponse("Purchase not found")
 
 
@@ -120,10 +122,12 @@ def kakaopay_start(request):
     total_price = 0
     items_count = len(items)
     purchase = Purchase.objects.create(user=request.user)
+    price = 0
     for item in items:
         product = Product.objects.get(handle=item['product__handle'])
         products.append(product)
-        total_price += product.price
+        price = product.price * item['quantity']
+        total_price += price
         purchase.products.add(product)
     
     if items_count > 1:
@@ -213,13 +217,16 @@ def kakaopay_success(request):
 
 @login_required
 def kakaopay_stopped(request):
+    BASE_ENDPOINT = f'http://{request.get_host()}'
     purchase_id = request.session.get("purchase_id")
     if purchase_id:
         purchase = Purchase.objects.get(id=purchase_id)
         purchase.delete()
         del request.session['purchase_id']
-        # 수정 예정
-        return redirect(purchase.product.get_absolute_url())
+        
+        cart_view_url = f'{BASE_ENDPOINT}{reverse("carts:view")}'
+        return redirect(cart_view_url)
+            
     return HttpResponse("Purchase not found")
 
 
