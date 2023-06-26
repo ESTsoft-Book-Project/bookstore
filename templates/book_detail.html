@@ -5,17 +5,11 @@
 {% block content %}
 {% block stylesheet %}
 <style>
-    {
-        % if book.user !=request.user %
-    }
-
+    {% if book.user != request.user %}
     .hidden {
         visibility: hidden;
     }
-
-        {
-        % endif %
-    }
+    {% endif %}
 
     .kakaopay-btn {
         background: url(https://developers.kakao.com/tool/resource/static/img/button/pay/payment_icon_yellow_small.png) no-repeat center;
@@ -30,6 +24,8 @@
     }
 </style>
 {% endblock stylesheet %}
+
+
 <h1>{{ book.name }}</h1>
 <div>
     <p>Handle: <span id="handle">{{ book.handle }}</span></p>
@@ -102,6 +98,7 @@
                     error => console.log(error)
                 );
         });
+    }
         document.getElementById('cartBtn').addEventListener('click', function () {
             const handle = '{{ book.handle }}';
             const url = '/carts/add/';
@@ -170,8 +167,5 @@
         .catch(error => console.log(error));
     });
     });
-
-
-
-    </script>
+ </script>
 {% endblock content %}
