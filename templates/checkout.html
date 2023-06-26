@@ -95,17 +95,18 @@
         .then(data => {
             if (data.statusCode !== 200) {
                 alert("상품 데이터가 올바르게 전달되지 않았습니다.");
-                window.location.href = "/";
-            }
-            // Push products into `tbody`
-            for (let item of data.items) {
+                window.location.href = "/carts";
+            } else {
+                // Push products into `tbody`
+                for (let item of data.items) {
 
-                const product = convertToJsObject(item);
-                const element = itemHtmlMapper(product);
-                document.querySelector("tbody").appendChild(
-                    element
-                );
-                items.push({ product: product, element: element });
+                    const product = convertToJsObject(item);
+                    const element = itemHtmlMapper(product);
+                    document.querySelector("tbody").appendChild(
+                        element
+                    );
+                    items.push({ product: product, element: element });
+                }
             }
 
             const sum = totalSum(items.map((e) => e.product));
