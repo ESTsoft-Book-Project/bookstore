@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect
 from django.shortcuts import get_object_or_404
 import requests
 from products.models import Product
+from carts.models import Cart
 from .models import Purchase
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, HttpResponseBadRequest, JsonResponse, HttpResponseRedirect
@@ -52,9 +53,10 @@ def stripe_start(request):
 
     line_items = []
     for product in products:
+        cart = Cart.objects.get(product=product, user=request.user)
         line_item = {
             "price": product.stripe_price_id,
-            "quantity": 1,
+            "quantity": cart.quantity,
         }
         line_items.append(line_item)
 
@@ -78,6 +80,7 @@ def stripe_success(request):
     if purchase_id:
         purchase = Purchase.objects.get(id=purchase_id)
         purchase.completed = True
+        purchase.provider = "stripe"
         purchase.save()
         del request.session['purchase_id']
         return redirect('/purchases/orders/')
@@ -91,6 +94,7 @@ def stripe_stopped(request):
     if purchase_id:
         purchase = Purchase.objects.get(id=purchase_id)
         del request.session['purchase_id']
+        purchase.delete()
         cart_view_url = f'{BASE_ENDPOINT}{reverse("carts:view")}'
         return redirect(cart_view_url)
     return HttpResponse("Purchase not found")
@@ -227,10 +231,38 @@ def kakaopay_stopped(request):
 
 
 @login_required
-def purchase_cancel(request, purchase_id):
+def stripe_payment_cancel(request, purchase_id):
     purchase = get_object_or_404(Purchase, id=purchase_id, user=request.user, completed=True)
     if request.method == 'POST':
-        purchase.completed = False
-        purchase.save()
-        
-    return redirect('purchases:orders')
+        if purchase.stripe_checkout_session_id:
+            try:
+                session = stripe.checkout.Session.retrieve(purchase.stripe_checkout_session_id)
+                if session.payment_status == 'paid':
+                    payment_intent_id = session.payment_intent
+                    amount = session.amount_total
+                    currency = session.currency.upper()
+
+                    refund = stripe.Refund.create(
+                        payment_intent=payment_intent_id,
+                        amount=amount,
+                    )
+                    if refund.status == 'succeeded':
+                        purchase.completed = False
+                        purchase.save()
+                        return redirect('purchases:orders')
+                    else:
+                        return HttpResponse("Failed to process refund")
+                else:
+                    # Payment was not successful, no refund needed
+                    purchase.completed = False
+                    purchase.save()
+                    return redirect('purchases:orders')
+            except stripe.error.StripeError as e:
+                print(str(e))
+                return HttpResponse("Stripe API error occurred")
+        else:
+            # No Stripe checkout session, simply mark the purchase as incomplete
+            purchase.completed = False
+            purchase.save()
+            return redirect('purchases:orders')
+    return HttpResponseBadRequest()

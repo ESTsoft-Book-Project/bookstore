@@ -21,7 +21,7 @@ class Product(models.Model):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         if self.price is not None:
-            self.stripe_price = self.price * 100
+            self.stripe_price = self.price
 
     def __str__(self):
         return self.name
@@ -32,7 +32,7 @@ class Product(models.Model):
             self.stripe_product_id = stripe_product_r.id
         
         if self.price:
-            self.stripe_price = self.price * 100
+            self.stripe_price = self.price
         super().save(*args, **kwargs)
         
         if not self.stripe_price_id:
