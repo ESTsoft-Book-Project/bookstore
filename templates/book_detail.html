@@ -39,13 +39,22 @@
   <button type="submit" id="deleteBtn" class="hidden">삭제</button>
   <a href="/products/book/"><input type="button" value="목록"></a>
   
-  <!-- Comment -->
   <h2>Comments</h2>
-  <ul id="commentList">
-      <!-- 기존 댓글 목록 -->
+ 
+  {% if comments %}
+  <ul>
+    {% for comment in comments %}
+      <li>
+        {{ comment.comment }} / {{ comment.date }}
+        <button class="delete-button" data-comment-id="{{ comment.id }}">Delete</button>
+      </li>
+    {% endfor %}
   </ul>
-  
-  <form id="commentForm">
+{% endif %}
+
+
+
+  <form id="commentForm" method="post">
       {% csrf_token %}
       <textarea id="id_content" rows="4" cols="50"></textarea><br>
       <button type="submit">Submit</button>
@@ -158,32 +167,57 @@
         });
 
         document.getElementById('commentForm').addEventListener('submit', function (e) {
-            e.preventDefault();
-        
-            var commentContent = document.getElementById('id_content').value;
+        e.preventDefault();
 
-            console.log(commentContent);
-            var url = window.location.href;
+        const commentContent = document.getElementById('id_content').value;
 
-            fetch(url, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': '{{ csrf_token }}',
-                },
-                body: JSON.stringify({ content: commentContent }),
+        const handle = '{{ book.handle }}';
+        const url = `/products/book/${handle}/comment/write/`;
+
+        fetch(url, {
+            method: 'POST',
+            headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrftoken,
+            },
+            body: JSON.stringify({ content: commentContent }),
+        })
+            .then(response => response.json())
+            .then(data => {
+            if (data.message) {
+                window.location.href = data.redirect;
+            }
             })
-                .then(response => response.text())
-                .then(data => {
-                    var commentList = document.getElementById('commentList');
-                    var li = document.createElement("li");
-                    var commentValue = document.createTextNode(commentContent);
-                    li.appendChild(commentValue);
-                    
-                    console.log("data", commentContent);
-                    commentList.appendChild(li);
-                })
-                .catch(error => console.log(error));
+            .catch(error => console.log(error));
         });
+
+        // Add an event listener to the delete buttons
+    const deleteButtons = document.querySelectorAll('.delete-button');
+    deleteButtons.forEach(button => {
+    button.addEventListener('click', () => {
+        const handle = '{{ book.handle }}';
+        const commentId = button.dataset.commentId;
+        const url = `/products/book/${handle}/comment/delete/${commentId}/`;
+
+        fetch(url, {
+        method: 'DELETE',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrftoken,
+        },
+        body: JSON.stringify({ product: handle }),
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.message) {
+            window.location.href = data.redirect;
+            }
+        })
+        .catch(error => console.log(error));
+    });
+    });
+
+
+
     </script>
 {% endblock content %}

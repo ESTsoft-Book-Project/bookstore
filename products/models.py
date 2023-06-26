@@ -48,7 +48,7 @@ class Product(models.Model):
 class Comment(models.Model):
     comment = models.TextField()
     date = models.DateTimeField(auto_now_add=True)
-    post = models.ForeignKey(Product, null=True, blank=True, on_delete=models.CASCADE)
+    book = models.ForeignKey(Product, null=True, blank=True, on_delete=models.CASCADE)
 
     def __str__(self):
         return self.comment

@@ -6,7 +6,7 @@ from django.contrib.auth.decorators import login_required
 from slugify import slugify
 from django.core.files.base import ContentFile
 from .forms import ProductForm, CommentForm
-from .models import Product
+from .models import Product, Comment
 from django.views.decorators.http import require_POST
 
 
@@ -16,10 +16,13 @@ def book_list(request):
 
 
 def book_detail(request, handle):
-    book_detail = get_object_or_404(Product, handle=handle)
-    comment_form = CommentForm()
-
-    return render(request, 'book_detail.html', {'book': book_detail, 'comment_form': comment_form})
+    book = get_object_or_404(Product, handle=handle)
+    comments = Comment.objects.filter(book=book)
+    context = {
+            'book': book,
+            'comments': comments,
+        }
+    return render(request, 'book_detail.html', context)
 
 
 def new_id():
@@ -97,21 +100,37 @@ def delete_product(request, handle):
         return JsonResponse({"message": "상품을 삭제할 권한이 없습니다.", 'redirect': '/products/book/'}, status=403)
 
 
-@require_POST
 def create_comment(request, handle):
+    if request.method == "POST":
+        request_data = json.loads(request.body)
+        comment_content = request_data.get('content')
+        book = get_object_or_404(Product, handle=handle)
+
+        if comment_content:
+            comment = Comment(comment=comment_content, book=book)
+            comment.save()
+
+            comment_data = {
+                'id': comment.id,
+                'content': comment.comment,
+                'date': comment.date.strftime('%Y-%m-%d %H:%M:%S'),
+            }
+            return JsonResponse({"message": "댓글이 작성되었습니다.", 'redirect': f'/products/book/{handle}'},status=200)
+        else:
+            return JsonResponse({'error': '댓글 내용을 제공해야 합니다.'}, status=400)
+    comments = Comment.objects.filter(book=book)
+    context = {
+        'book': book,
+        'comments': comments,
+    }
+    return render(request, "book_detal.html", context)
+
+def delete_comment(request, handle, comment_id):
     book = get_object_or_404(Product, handle=handle)
-    filled_form = CommentForm(request.POST)
+    comment = get_object_or_404(Comment, id=comment_id, book=book)
 
-    if filled_form.is_valid():
-        finished_form = filled_form.save(commit=False)
-        finished_form.product = book
-        finished_form.save()
-
-        comment_data = {
-            'content': finished_form.content,
-            'created_at': finished_form.created_at.strftime('%Y-%m-%d %H:%M:%S'),
-        }
-
-        return JsonResponse(comment_data, status=200)
+    if request.method == "DELETE":
+        comment.delete()
+        return JsonResponse({"message": "댓글이 삭제되었습니다.", 'redirect': f'/products/book/{handle}'}, status=200)
     else:
-        return JsonResponse({'error': '댓글을 생성하는데 실패했습니다.'}, status=400)
+        return JsonResponse({'error': '잘못된 요청입니다.'}, status=400)
