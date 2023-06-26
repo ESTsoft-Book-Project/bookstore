@@ -228,8 +228,6 @@ def kakaopay_stopped(request):
     return HttpResponse("Purchase not found")
 
 
-import stripe
-
 @login_required
 def purchase_cancel(request, purchase_id):
     purchase = get_object_or_404(Purchase, id=purchase_id, user=request.user, completed=True)
