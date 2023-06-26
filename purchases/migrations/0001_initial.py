@@ -19,12 +19,9 @@ class Migration(migrations.Migration):
             name='Purchase',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('order_name', models.CharField(max_length=255)),
                 ('timestamp', models.DateTimeField(auto_now_add=True)),
                 ('completed', models.BooleanField(default=False)),
-                ('stripe_checkout_session_id', models.CharField(blank=True, max_length=220, null=True)),
-                ('stripe_price', models.IntegerField(default=0)),
-                ('kakaopay_checkout_tid', models.CharField(blank=True, max_length=20, null=True)),
-                ('kakaopay_price', models.IntegerField(default=0)),
                 ('product', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='products.product')),
                 ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
             ],

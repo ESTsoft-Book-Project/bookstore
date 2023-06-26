@@ -1,67 +1,83 @@
-from django.shortcuts import render, redirect
-
+from django.shortcuts import render
 from django.contrib.auth import login, authenticate, logout
-from django.http import JsonResponse
-from django.urls import reverse
-from .forms import SignupForm
-from django.contrib.auth import update_session_auth_hash
-from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
-import json
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from rest_framework import status
+from .serializers import UserSerializer, SignInSerializer
 from django.views.decorators.csrf import csrf_exempt
 
+
+
+
 @csrf_exempt
+@api_view(['POST', 'GET'])
 def signup(request):
     if request.method == 'POST':
-        request_data = json.loads(request.body)
-        form = SignupForm(request_data)
-        
-        if form.is_valid():
-            form.save()
-            return JsonResponse({'success': True, 'message': '회원가입이 완료되었습니다.', 'redirect': reverse('users:signin')}, status=200)
+        serializer = UserSerializer(data=request.data)
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+            return Response({'success': True, 'message': '회원가입이 완료되었습니다.', 'redirect': '/users/signin/'})
         else:
-            errors = {}
-            for field, field_errors in form.errors.items():
-                errors[field] = field_errors.as_text()
-            return JsonResponse({'success': False, 'message': '다시 시도해 주세요.', 'errors': errors}, status=400)
-    return render(request, "signup.html")
+            return Response({'success': False, 'message': '회원가입에 실패했습니다.', 'errors': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+        
+    return render(request, 'signup.html')
     
+
+@csrf_exempt
+@api_view(['POST', 'GET'])
 def signin(request):
-    if request.method == 'POST':
-        email = request.POST.get('email')
-        password = request.POST.get('password')
-        user = authenticate(username=email, password=password)
-        if user:
-            login(request, user)
-            return JsonResponse({'result': True, 'redirect': '', 'statusCode': 200})
-        else:
-            return JsonResponse({'result': False, 'statusCode': 400})
-        
-    return render(request,'signin.html')
+    serializer = SignInSerializer(data=request.data)
+    if request.method == 'POST':       
+        if serializer.is_valid():
+            email = serializer.validated_data['email']
+            password = serializer.validated_data['password']
+            user = authenticate(request, email=email, password=password)
+            if user is not None:
+                login(request, user)
+                return Response({'message': 'Login successful', 'redirect': '/'}, status=status.HTTP_200_OK )
+            else:
+                return Response({'message': 'Invalid username or password'})
+        else: 
+            return Response(serializer.errors)
+    return render(request, 'signin.html')
+    
 
-
+@api_view(['GET', 'PATCH'])
 @login_required(login_url="/users/signin/")
 def profile(request):
-    if request.method == "PATCH":
-        user = request.user
-        user.email = json.loads(request.body).get("email", user.email)
-        user.nickname = json.loads(request.body).get("nickname", user.nickname)
-        update_password = json.loads(request.body).get("password")
-        if update_password:
-            user.set_password(update_password)
-            update_session_auth_hash(request, user)
-        user.save()
-        return JsonResponse({"message": "회원 정보 수정이 완료되었습니다."})
+    user = request.user
+    if request.method == 'PATCH':
+        serializer = UserSerializer(user, data = request.data, partial = True)
+        if serializer.is_valid():
+            for field in request.data.keys():
+                if field != "password":
+                    setattr(user, field, request.data[field])
+                else:
+                    user.set_password(request.data[field])
+            user.save()
+            return Response({"result": True, "statusCode": 200, "message": "회원 정보 수정이 완료되었습니다."})
+    elif request.method == "GET":
+        serializer = UserSerializer(user)
+        return render(request, "profile.html", {"user": serializer.data})
     else:
-        return render(request, "profile.html", {"user": request.user})
+            return Response({"result": False, "statusCode": 400, "message": "에러가 발생했습니다."})
 
+@api_view(["DELETE"])
 @login_required(login_url="/users/signin/")
 def delete_user(request):
-    user = request.user
-    user.delete()
-    logout(request)
-    return JsonResponse({"message": "회원 탈퇴가 완료되었습니다."})
+    if request.method == "DELETE":
+        user = request.user
+        user.delete()
+        logout(request)
+        return Response({"message": "회원 탈퇴가 완료되었습니다."})
+    else:
+        return Response({"result": False})
 
+@api_view(["POST"])
 def signout(request):
-    logout(request)
-    return JsonResponse({'result': True, 'redirect': reverse('users:signin'), 'statusCode': 200})
+    if request.method == 'POST':
+        logout(request)
+        return Response({'result': True, 'redirect': '/users/signin/'})
+    else:
+        return Response({'result': False, 'message': '잘못된 요청입니다.'})
