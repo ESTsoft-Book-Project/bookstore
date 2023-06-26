@@ -72,7 +72,6 @@ def stripe_start(request):
     purchase.save()
     return JsonResponse({'checkout_url': checkout_session.url})
 
-from django.http import JsonResponse
 
 @login_required
 def stripe_success(request):
@@ -173,7 +172,7 @@ def kakaopay_start(request):
     result = res.json()
     
     purchase.kakaopay_checkout_tid = result['tid']
-    
+    purchase.provider = 'kakaopay'
     purchase.save()
     return JsonResponse({'redirect': result['next_redirect_pc_url']})
 
@@ -265,4 +264,38 @@ def stripe_payment_cancel(request, purchase_id):
             purchase.completed = False
             purchase.save()
             return redirect('purchases:orders')
+    return HttpResponseBadRequest()
+
+
+@login_required
+def kakaopay_payment_cancel(request, purchase_id):
+    purchase = get_object_or_404(Purchase, id=purchase_id, user=request.user, completed=True)
+    if request.method == 'POST':
+        tid = purchase.kakaopay_checkout_tid
+        total_price = purchase.kakaopay_price
+        
+        url = f'https://kapi.kakao.com/v1/payment/cancel'
+        header = {
+            'Authorization': f'KakaoAK {kakaopay_admin_key}'
+        }
+
+        data = {
+            'cid': 'TC0ONETIME', # 테스트용 기본 가맹점 키 값
+            'tid': tid,
+            'cancel_amount': total_price,
+            'cancel_tax_free_amount': 0
+        }
+
+        res = requests.post(url, data=data, headers=header)
+        result = res.json()
+
+        if result.get('msg'):
+            return HttpResponse("Failed to cancel")
+    
+        purchase.completed = False
+        purchase.provider = ''
+        purchase.kakaopay_checkout_tid = ''
+        purchase.kakaopay_price = 0
+        purchase.save()
+
     return HttpResponseBadRequest()

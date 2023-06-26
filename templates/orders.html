@@ -31,6 +31,11 @@
                   {% csrf_token %}
                   <button type="submit" class="cancel-link" data-purchase-id="{{ purchase.id }}">Cancel Payment</button>
                 </form>
+                {% elif purchase.provider == "kakaopay" %}
+                <form action="{% url 'purchases:kakaopay_payment_cancel' purchase.id %}" method="post">
+                  {% csrf_token %}
+                  <button type="submit" class="cancel-link" data-purchase-id="{{ purchase.id }}">Cancel Payment</button>
+                </form>
                 {% endif %}
               {% endif %}
             </td>
