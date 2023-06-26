@@ -161,8 +161,10 @@
             e.preventDefault();
         
             var commentContent = document.getElementById('id_content').value;
+
+            console.log(commentContent);
             var url = window.location.href;
-        
+
             fetch(url, {
                 method: 'POST',
                 headers: {
@@ -171,13 +173,17 @@
                 },
                 body: JSON.stringify({ content: commentContent }),
             })
-                .then(response => response.text())  // Parse response as text
+                .then(response => response.text())
                 .then(data => {
-                    // Append the new comment to the comment list
                     var commentList = document.getElementById('commentList');
-                    commentList.insertAdjacentHTML('beforeend', data);
+                    var li = document.createElement("li");
+                    var commentValue = document.createTextNode(commentContent);
+                    li.appendChild(commentValue);
+                    
+                    console.log("data", commentContent);
+                    commentList.appendChild(li);
                 })
                 .catch(error => console.log(error));
         });
     </script>
-{% endblock content %}q
+{% endblock content %}
