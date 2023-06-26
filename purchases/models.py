@@ -8,7 +8,9 @@ class Purchase(models.Model):
     products = models.ManyToManyField(Product)
     timestamp = models.DateTimeField(auto_now_add=True)
     completed = models.BooleanField(default=False)
-    
+    provider = models.CharField(max_length=220, blank=True, null=True)
+
+
     stripe_checkout_session_id = models.CharField(max_length=220, blank=True, null=True)
     stripe_price = models.IntegerField(default=0)
 
