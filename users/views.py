@@ -74,10 +74,10 @@ def delete_user(request):
     else:
         return Response({"result": False})
 
-@api_view(["POST"])
+@api_view(["GET"])
 def signout(request):
-    if request.method == 'POST':
+    if request.method == 'GET':
         logout(request)
-        return Response({'result': True, 'redirect': '/users/signin/'})
+        return render(request, 'signin.html')
     else:
         return Response({'result': False, 'message': '잘못된 요청입니다.'})
