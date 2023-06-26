@@ -24,6 +24,9 @@ export function convertToJsObject(item) {
 export function itemHtmlMapper(item) {
   const tr = document.createElement("tr");
   const handle = item.productHandle;
+  const stock = item['stock'];
+  item['quantity'] = Math.min(item['quantity'], stock);
+  const quantity = item['quantity'];
 
   for (const key of order) {
     const value = item[key];
@@ -37,7 +40,8 @@ export function itemHtmlMapper(item) {
           id="checkbox-${handle}" 
           type="checkbox" 
           label="cartItem"
-          ${value ? "checked" : ""}
+          ${value && quantity > 0 ? "checked" : ""}
+          ${quantity <= 0 ? "disabled" : ""}
         >
         `;
         break;
@@ -48,6 +52,7 @@ export function itemHtmlMapper(item) {
           id="quantity-${handle}" 
           type="number" 
           label="cartItem"
+          min="0"
           value="${value}">
         `;
         break;

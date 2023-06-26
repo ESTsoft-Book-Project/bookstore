@@ -121,20 +121,26 @@
             const stock = parseInt(item.product.stock);
             const quantity = parseInt(children.quantity.value);
 
-            if (quantity <= stock) {
+            if (quantity <= 0) {
+                // you cannot buy 0 product
+                item.product.checked = false;
+                children.checked.checked = false;
+                children.checked.disabled = true;
+            }
+            else if (quantity <= stock) {
                 // ok
+                children.checked.disabled = false;
+                children.checked.dispatchEvent(new Event("changed"));
                 const resultPrice = originalPrice * quantity;
 
                 item.product.quantity = quantity;
                 children.productPrice.innerText = `${resultPrice} 원`;
-
-                total.setValue(totalSum(items.map((e) => e.product)));
             } else {
                 // too many quantity
                 alert("재고보다 많은 양을 장바구니에 담을 수 없습니다.");
                 children.quantity.value = stock;
             }
-
+            total.setValue(totalSum(items.map((e) => e.product)))
         });
 
         children.delete.addEventListener("click", (e) => {
@@ -163,6 +169,9 @@
             // sum of checked product's price
             total.setValue(totalSum(items.map((e) => e.product)));
         });
+        //SECTION - Dispatch Events
+        children.quantity.dispatchEvent(new Event("change"));
+        //!SECTION
     }
 
     document.getElementById("order-btn").addEventListener("click", function () {
@@ -196,5 +205,7 @@
             });
     });
     //!SECTION
+
+
 </script>
 {% endblock content %}
