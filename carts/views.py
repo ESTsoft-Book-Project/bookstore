@@ -79,6 +79,9 @@ def checkout_list(request) -> JsonResponse:
     """returns: JsonResponse that contains products"""
     filtered = Cart.objects.filter(user=request.user, checked=True)
 
+    if not filtered:
+        return JsonResponse({"statusCode": 400})
+
     items = filtered.values(
                 "checked",
                 "user_id",
