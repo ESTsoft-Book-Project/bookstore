@@ -72,7 +72,6 @@ def stripe_start(request):
     purchase.save()
     return JsonResponse({'checkout_url': checkout_session.url})
 
-from django.http import JsonResponse
 
 @login_required
 def stripe_success(request):
