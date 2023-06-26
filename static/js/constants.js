@@ -7,6 +7,7 @@ export const elementResponseMapper = {
   productPrice: "product__price",
   imageUrl: "image_url",
   bookUrl: "book_url",
+  stock: "product__stock",
 };
 
 export const cartElementOrder = [

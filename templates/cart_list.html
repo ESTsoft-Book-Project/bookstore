@@ -118,13 +118,23 @@
             //NOTE - doesn't fetch, only change innerText of `productPrice`
 
             const originalPrice = parseInt(item.product.productPrice);
+            const stock = parseInt(item.product.stock);
             const quantity = parseInt(children.quantity.value);
-            const resultPrice = originalPrice * quantity;
 
-            item.product.quantity = quantity;
-            children.productPrice.innerText = `${resultPrice} 원`;
+            if (quantity <= stock) {
+                // ok
+                const resultPrice = originalPrice * quantity;
 
-            total.setValue(totalSum(items.map((e) => e.product)));
+                item.product.quantity = quantity;
+                children.productPrice.innerText = `${resultPrice} 원`;
+
+                total.setValue(totalSum(items.map((e) => e.product)));
+            } else {
+                // too many quantity
+                alert("재고보다 많은 양을 장바구니에 담을 수 없습니다.");
+                children.quantity.value = stock;
+            }
+
         });
 
         children.delete.addEventListener("click", (e) => {

@@ -55,7 +55,8 @@ def cart_list(request) -> JsonResponse:
                 "quantity", 
                 "product__handle",
                 "product__name",
-                "product__price")
+                "product__price",
+                "product__stock")
 
     image_urls = [cart.product.get_image_url() for cart in filtered]
     book_urls = [cart.product.get_absolute_url() for cart in filtered]
