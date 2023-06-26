@@ -26,23 +26,19 @@ def stripe_start(request):
         return HttpResponseBadRequest()
     
     products=[]
+    stripe_price_id_list=[]
+    purchase = Purchase.objects.create(user=request.user)
+    purchase.stripe_price
     for item in items:
         product = Product.objects.get(handle=item['product__handle'])
-        products.append(product)
+        product.stripe_price = product.price * 100
+        purchase.products.add(product)
+        purchase.stripe_price += product.stripe_price
+        products.append(product) 
+        product.save()
+        stripe_price_id_list.append(product.stripe_price_id)
     
-    stripe_price_id_list=[]
-    for product in products:
-        stripe_price_id = product.stripe_price_id
-        stripe_price_id_list.append(stripe_price_id)
-
-
-    if stripe_price_id is None:
-        return HttpResponseBadRequest()
-    
-    purchase = Purchase.objects.create(user=request.user)
-    purchase.products.set(products)
     request.session['purchase_id'] = purchase.id
-    
     success_path = reverse("purchases:stripe_success")
     if not success_path.startswith("/"):
         success_path = f"/{success_path}"
@@ -55,9 +51,9 @@ def stripe_start(request):
     stopped_url = f"{BASE_ENDPOINT}{stopped_path}"
 
     line_items = []
-    for stripe_price_id in stripe_price_id_list:
+    for product in products:
         line_item = {
-            "price": stripe_price_id,
+            "price": product.stripe_price_id,
             "quantity": 1,
         }
         line_items.append(line_item)
@@ -69,7 +65,7 @@ def stripe_start(request):
         cancel_url=stopped_url
     )
     purchase.stripe_checkout_session_id = checkout_session.id
-    purchase.stripe_price = product.price
+    purchase.stripe_price = sum([product.stripe_price for product in products])
 
     purchase.save()
     return JsonResponse({'checkout_url': checkout_session.url})
@@ -90,11 +86,13 @@ def stripe_success(request):
 
 @login_required
 def stripe_stopped(request):
+    BASE_ENDPOINT = f'http://{request.get_host()}'
     purchase_id = request.session.get("purchase_id")
     if purchase_id:
         purchase = Purchase.objects.get(id=purchase_id)
         del request.session['purchase_id']
-        return redirect(purchase.product.get_absolute_url())
+        cart_view_url = f'{BASE_ENDPOINT}{reverse("carts:view")}'
+        return redirect(cart_view_url)
     return HttpResponse("Purchase not found")
 
 
