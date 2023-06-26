@@ -80,6 +80,7 @@ def stripe_success(request):
     if purchase_id:
         purchase = Purchase.objects.get(id=purchase_id)
         purchase.completed = True
+        purchase.provider = "stripe"
         purchase.save()
         del request.session['purchase_id']
         return redirect('/purchases/orders/')
@@ -93,6 +94,7 @@ def stripe_stopped(request):
     if purchase_id:
         purchase = Purchase.objects.get(id=purchase_id)
         del request.session['purchase_id']
+        purchase.delete()
         cart_view_url = f'{BASE_ENDPOINT}{reverse("carts:view")}'
         return redirect(cart_view_url)
     return HttpResponse("Purchase not found")
@@ -229,7 +231,7 @@ def kakaopay_stopped(request):
 
 
 @login_required
-def purchase_cancel(request, purchase_id):
+def stripe_payment_cancel(request, purchase_id):
     purchase = get_object_or_404(Purchase, id=purchase_id, user=request.user, completed=True)
     if request.method == 'POST':
         if purchase.stripe_checkout_session_id:
