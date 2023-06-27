@@ -1,6 +1,8 @@
+from django.http import JsonResponse
 from django.shortcuts import render
 from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.decorators import login_required
+from django.urls import reverse
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
@@ -74,10 +76,11 @@ def delete_user(request):
     else:
         return Response({"result": False})
 
-@api_view(["GET"])
+@api_view(["POST"])
+@login_required()
 def signout(request):
-    if request.method == 'GET':
-        logout(request)
-        return render(request, 'signin.html')
-    else:
-        return Response({'result': False, 'message': '잘못된 요청입니다.'})
+    logout(request)
+    return JsonResponse(
+        {"statusCode": 200,
+         "message": "Succesfully Logged Out", 
+         "redirect_url": reverse("users:signin")})
