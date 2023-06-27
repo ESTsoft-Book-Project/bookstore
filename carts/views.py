@@ -1,5 +1,6 @@
 import re
 import json
+from django.forms import ValidationError
 from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.urls import Resolver404, reverse
@@ -55,7 +56,8 @@ def cart_list(request) -> JsonResponse:
                 "quantity", 
                 "product__handle",
                 "product__name",
-                "product__price")
+                "product__price",
+                "product__stock")
 
     image_urls = [cart.product.get_image_url() for cart in filtered]
     book_urls = [cart.product.get_absolute_url() for cart in filtered]
@@ -132,6 +134,11 @@ def cart_update(request):
             .exists()
             for x in json_request]):
         raise FieldDoesNotExist()
+    for each_request in json_request:
+        quantity = each_request['value']['quantity']
+        stock = products.get(product_id=get_handle_from_path(each_request['path'])).product.stock
+        if not quantity <= stock:
+            raise ValidationError(f"Cart.quantity ({quantity}) exceeds Product.stock ({stock})")
 
     # let's DO update!
     for each_patch in json_request:
