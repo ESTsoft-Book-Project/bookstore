@@ -54,7 +54,10 @@
                 body: JSON.stringify(userData)
             })
                 .then(res => res.json())
-                .then(data => alert(data.message));
+                .then(data => {
+                    alert(data.message)
+                    window.location.href = data.redirect_url
+                });
         });
 
         document.querySelector("#userDelete").addEventListener("submit", function (e) {

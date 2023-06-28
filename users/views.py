@@ -58,12 +58,14 @@ def profile(request):
                 else:
                     user.set_password(request.data[field])
             user.save()
-            return Response({"result": True, "statusCode": 200, "message": "회원 정보 수정이 완료되었습니다."})
+            logout(request)
+            redirect_url = reverse('users:signin')
+            return Response({"result": True, "statusCode": 200, "message": "회원 정보 수정이 완료되었습니다.", "redirect_url": redirect_url})
     elif request.method == "GET":
         serializer = UserSerializer(user)
         return render(request, "profile.html", {"user": serializer.data})
     else:
-            return Response({"result": False, "statusCode": 400, "message": "에러가 발생했습니다."})
+        return Response({"result": False, "statusCode": 400, "message": "에러가 발생했습니다."})
 
 @api_view(["DELETE"])
 @login_required(login_url="/users/signin/")
