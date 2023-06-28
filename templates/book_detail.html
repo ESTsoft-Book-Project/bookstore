@@ -49,7 +49,10 @@
     {% for comment in comments %}
       <li>
         {{ comment.comment }} / {{ comment.date }}
+        
+        {% if user.is_authenticated and comment.user == user %}
         <button class="delete-button" data-comment-id="{{ comment.id }}">Delete</button>
+        {% endif %}
       </li>
     {% endfor %}
   </ul>
