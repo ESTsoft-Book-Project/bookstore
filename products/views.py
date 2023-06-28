@@ -65,7 +65,6 @@ def create_product(request):
 def update_product(request, handle):
     book = get_object_or_404(Product, handle=handle)
     context = {"book": book}
-    print(handle)
 
     if request.method == "PATCH":
         request_data = json.loads(request.body)
