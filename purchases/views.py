@@ -317,6 +317,6 @@ def kakaopay_payment_cancel(request, purchase_id):
 
 @login_required
 def purchase_order_view(request):
-    purchases = Purchase.objects.filter(user=request.user, completed=True)
+    purchases = Purchase.objects.filter(user=request.user)
     return render(request, "orders.html", {"purchases": purchases})
 
