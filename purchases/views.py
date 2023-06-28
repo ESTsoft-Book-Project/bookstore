@@ -33,8 +33,8 @@ def stripe_start(request):
     for item in items:
         product = Product.objects.get(handle=item['product__handle'])
         quantity = item['quantity']
-        purchase_item = PurchaseItem.objects.create(purchase=purchase, product=product, quantity=quantity)
-        product.stripe_price = product.price * 100
+        PurchaseItem.objects.create(purchase=purchase, product=product, quantity=quantity)
+        product.stripe_price = product.price
         purchase.products.add(product)
         purchase.stripe_price += product.stripe_price
         products.append(product) 
@@ -98,7 +98,6 @@ def stripe_success(request):
         del request.session['purchase_id']
         return redirect('/purchases/orders/')
     return JsonResponse({'error': 'Purchase not found'})
-
 
 
 @login_required
@@ -248,7 +247,6 @@ def stripe_payment_cancel(request, purchase_id):
                 if session.payment_status == 'paid':
                     payment_intent_id = session.payment_intent
                     amount = session.amount_total
-                    currency = session.currency.upper()
 
                     refund = stripe.Refund.create(
                         payment_intent=payment_intent_id,
