@@ -65,13 +65,13 @@
 {% endif %}
 
 
-
+{% if user.is_authenticated %}
 <form id="commentForm" method="post">
     {% csrf_token %}
     <textarea id="id_content" rows="4" cols="50"></textarea><br>
     <button type="submit">Submit</button>
 </form>
-
+{% endif %}
 </div>
 
 <script>
