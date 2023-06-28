@@ -12,8 +12,12 @@ from .models import Cart
 from .models import Product
 
 
-@login_required(login_url="/users/signin")
 def cart_add(request):
+    user = request.user
+    if not user.is_authenticated:
+        redirect_url = reverse('users:signin')
+        return JsonResponse({"message": "로그인 후 사용 가능합니다.", "redirect_url": redirect_url})
+    
     if request.method == "POST":
         request_data = json.loads(request.body)
         request_data["user"] = request.user
