@@ -99,6 +99,7 @@ def update_product(request, handle):
         return render(request, "update_product.html", context)
 
 
+@login_required
 def delete_product(request, handle):
     book = Product.objects.get(handle=handle)
     user = request.user
@@ -111,6 +112,7 @@ def delete_product(request, handle):
         return JsonResponse({"message": "상품을 삭제할 권한이 없습니다.", 'redirect': '/products/book/', 'statusCode': 403}, status=403)
 
 
+@login_required
 def create_comment(request, handle):
     if request.method == "POST":
         request_data = json.loads(request.body)
@@ -137,11 +139,17 @@ def create_comment(request, handle):
     }
     return render(request, "book_detal.html", context)
 
+
+@login_required
 def delete_comment(request, handle, comment_id):
     book = get_object_or_404(Product, handle=handle)
     comment = get_object_or_404(Comment, id=comment_id, book=book)
+    user = request.user
 
     if request.method == "DELETE":
+        if comment.user != user:
+            return JsonResponse({"error": "삭제 권한이 없습니다."}, status=400)
+        
         comment.delete()
         return JsonResponse({"message": "댓글이 삭제되었습니다.", 'redirect': f'/products/book/{handle}'}, status=200)
     else:
