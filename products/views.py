@@ -3,6 +3,7 @@ import base64
 from django.shortcuts import render, get_object_or_404
 from django.http import JsonResponse, HttpResponse
 from django.contrib.auth.decorators import login_required
+from django.urls import reverse
 from slugify import slugify
 from django.core.files.base import ContentFile
 from .forms import ProductForm, CommentForm
@@ -104,9 +105,10 @@ def delete_product(request, handle):
 
     if user == book.user:
         book.delete()
-        return JsonResponse({"message": "도서 정보가 삭제되었습니다.", 'redirect': '/products/book/'}, status=200)
+        redirect_url = reverse('book:book_list')
+        return JsonResponse({"message": "도서 정보가 삭제되었습니다.", 'redirect': redirect_url, 'statusCode': 200}, status=200)
     else:
-        return JsonResponse({"message": "상품을 삭제할 권한이 없습니다.", 'redirect': '/products/book/'}, status=403)
+        return JsonResponse({"message": "상품을 삭제할 권한이 없습니다.", 'redirect': '/products/book/', 'statusCode': 403}, status=403)
 
 
 def create_comment(request, handle):
@@ -114,9 +116,10 @@ def create_comment(request, handle):
         request_data = json.loads(request.body)
         comment_content = request_data.get('content')
         book = get_object_or_404(Product, handle=handle)
+        user = request.user
 
         if comment_content:
-            comment = Comment(comment=comment_content, book=book)
+            comment = Comment(comment=comment_content, book=book, user=user)
             comment.save()
 
             comment_data = {

@@ -3,6 +3,8 @@ from django.db import models
 import stripe
 from django.urls import reverse
 
+from users.models import User
+
 class Product(models.Model):
     name = models.CharField(max_length=255)
     handle = models.SlugField(max_length=255, unique=True)
@@ -57,6 +59,7 @@ class Comment(models.Model):
     comment = models.TextField()
     date = models.DateTimeField(auto_now_add=True)
     book = models.ForeignKey(Product, null=True, blank=True, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
 
     def __str__(self):
         return self.comment
