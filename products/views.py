@@ -43,6 +43,9 @@ def create_product(request):
         image_data = request_data.get('image')
         handle = slugify(f"{request_data['name']}-{new_id()}")
 
+        if float(request_data.get('price')) < 100:
+            return JsonResponse({"message": '가격은 100원 이상으로 설정해야합니다.', "redirect_url": "/products/book/create/"})
+        
         form = ProductForm(request_data)
         if form.is_valid():
             product = form.save(commit=False)
@@ -66,8 +69,14 @@ def update_product(request, handle):
 
     if request.method == "PATCH":
         request_data = json.loads(request.body)
+
+        if float(request_data.get('price')) < 100:
+            url = f"/products/book/update/{handle}"
+            return JsonResponse({"message": "가격은 100원 이상으로 설정해야합니다.", "redirect": url}, status=400)
+        
         request_data["handle"] = slugify(f"{request_data['name']}-{new_id()}")
         handle = request_data["handle"]
+        
 
         form = ProductForm(request_data, instance=book)
         if form.is_valid():

@@ -5,11 +5,17 @@
 {% block content %}
 {% block stylesheet %}
 <style>
-    {% if book.user != request.user %}
+    {
+        % if book.user !=request.user %
+    }
+
     .hidden {
         visibility: hidden;
     }
-    {% endif %}
+
+        {
+        % endif %
+    }
 
     .kakaopay-btn {
         background: url(https://developers.kakao.com/tool/resource/static/img/button/pay/payment_icon_yellow_small.png) no-repeat center;
@@ -34,43 +40,43 @@
     <p>Stock: <span id="stock">{{ book.stock }}</span></p>
     <img src="{{ book.get_image_url }}" alt="Image" width="500" height="500">
 </div>
-<!-- <button type="submit" id="purchaseBtn">구매</button> -->
+{% if request.user.is_authenticated %}
 <button type="submit" id="cartBtn">카트</button>
-<!-- <button type="submit" id="kakaopayBtn" class="kakaopay-btn"></button> -->
+{% endif %}
 
-  <span class="hidden"><a href="/products/book/update/{{ book.handle }}/"><input type="button" value="수정"></a></span>
-  <button type="submit" id="deleteBtn" class="hidden">삭제</button>
-  <a href="/products/book/"><input type="button" value="목록"></a>
-  
-  <h2>Comments</h2>
- 
-  {% if comments %}
-  <ul>
+<span class="hidden"><a href="/products/book/update/{{ book.handle }}/"><input type="button" value="수정"></a></span>
+<button type="submit" id="deleteBtn" class="hidden">삭제</button>
+<a href="/products/book/"><input type="button" value="목록"></a>
+
+<h2>Comments</h2>
+
+{% if comments %}
+<ul>
     {% for comment in comments %}
-      <li>
+    <li>
         {{ comment.comment }} / {{ comment.date }}
         
         {% if user.is_authenticated and comment.user == user %}
         <button class="delete-button" data-comment-id="{{ comment.id }}">Delete</button>
         {% endif %}
-      </li>
+    </li>
     {% endfor %}
-  </ul>
+</ul>
 {% endif %}
 
 
 
-  <form id="commentForm" method="post">
-      {% csrf_token %}
-      <textarea id="id_content" rows="4" cols="50"></textarea><br>
-      <button type="submit">Submit</button>
-  </form>
+<form id="commentForm" method="post">
+    {% csrf_token %}
+    <textarea id="id_content" rows="4" cols="50"></textarea><br>
+    <button type="submit">Submit</button>
+</form>
 
- </div>
+</div>
 
-    <script>
-        const csrftoken = getCookie('csrftoken');
-        const deleteBtn = document.getElementById('deleteBtn');
+<script>
+    const csrftoken = getCookie('csrftoken');
+    const deleteBtn = document.getElementById('deleteBtn');
 
     if (deleteBtn) {
         deleteBtn.addEventListener('click', function (e) {
@@ -102,25 +108,25 @@
                 );
         });
     }
-        document.getElementById('cartBtn').addEventListener('click', function () {
-            const handle = '{{ book.handle }}';
-            const url = '/carts/add/';
-            fetch(url, {
-                method: 'POST',
-                headers: {
-                    'X-CSRFToken': csrftoken,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ product: handle })
-            })
-                .then(response => response.json())
-                .then(data => {
-                    alert(data.message);
-                    window.location.href = data.redirect_url;
-                });
-        });
+    document.getElementById('cartBtn').addEventListener('click', function () {
+        const handle = '{{ book.handle }}';
+        const url = '/carts/add/';
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrftoken,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ product: handle })
+        })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.message);
+                window.location.href = data.redirect_url;
+            });
+    });
 
-        document.getElementById('commentForm').addEventListener('submit', function (e) {
+    document.getElementById('commentForm').addEventListener('submit', function (e) {
         e.preventDefault();
 
         const commentContent = document.getElementById('id_content').value;
@@ -131,44 +137,44 @@
         fetch(url, {
             method: 'POST',
             headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': csrftoken,
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrftoken,
             },
             body: JSON.stringify({ content: commentContent }),
         })
             .then(response => response.json())
             .then(data => {
-            if (data.message) {
-                window.location.href = data.redirect;
-            }
+                if (data.message) {
+                    window.location.href = data.redirect;
+                }
             })
             .catch(error => console.log(error));
-        });
+    });
 
-        // Add an event listener to the delete buttons
+    // Add an event listener to the delete buttons
     const deleteButtons = document.querySelectorAll('.delete-button');
     deleteButtons.forEach(button => {
-    button.addEventListener('click', () => {
-        const handle = '{{ book.handle }}';
-        const commentId = button.dataset.commentId;
-        const url = `/products/book/${handle}/comment/delete/${commentId}/`;
+        button.addEventListener('click', () => {
+            const handle = '{{ book.handle }}';
+            const commentId = button.dataset.commentId;
+            const url = `/products/book/${handle}/comment/delete/${commentId}/`;
 
-        fetch(url, {
-        method: 'DELETE',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': csrftoken,
-        },
-        body: JSON.stringify({ product: handle }),
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.message) {
-            window.location.href = data.redirect;
-            }
-        })
-        .catch(error => console.log(error));
+            fetch(url, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrftoken,
+                },
+                body: JSON.stringify({ product: handle }),
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.message) {
+                        window.location.href = data.redirect;
+                    }
+                })
+                .catch(error => console.log(error));
+        });
     });
-    });
- </script>
+</script>
 {% endblock content %}
