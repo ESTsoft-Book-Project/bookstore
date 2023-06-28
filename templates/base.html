@@ -25,26 +25,27 @@
 <body>
     {% include 'nav.html' %}
 
-    {% if user.is_authenticated %}
-        <script>
-            document.querySelector('#sign_out_btn').addEventListener('click', signout);
-            function signout(e) {
-                e.preventDefault();
-                fetch('{% url "users:signout" %}', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': getCookie("csrftoken")
-                    }
+    <script>
+        $sign_out_btn = document.querySelector('#sign_out_btn');
+        if ($sign_out_btn) {
+            $sign_out_btn.addEventListener('click', signout);
+        }
+        function signout(e) {
+            e.preventDefault();
+            fetch('{% url "users:signout" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie("csrftoken")
+                }
+            })
+                .then(response => response.json())
+                .then(data => {
+                    window.location.href = data.redirect_url;
                 })
-                    .then(response => response.json())
-                    .then(data => {
-                        window.location.href = data.redirect_url;
-                    })
-                    .catch(error => console.log(error));
-            };
-        </script>
-    {% endif %}
+                .catch(error => console.log(error));
+        };
+    </script>
 
     {% block content %}
         {% comment %} Here main magic goes! {% endcomment %}
