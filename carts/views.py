@@ -1,21 +1,27 @@
 import re
 import json
+from django.forms import ValidationError
 from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.urls import Resolver404, reverse
 from django.views.decorators.http import require_http_methods
-from django.http import HttpResponse, JsonResponse
+from django.http import HttpResponse, HttpResponseBadRequest, JsonResponse
 from django.core.exceptions import FieldDoesNotExist
 from .forms import CartForm
 from .models import Cart
 from .models import Product
 
 
-@login_required(login_url="/users/signin")
 def cart_add(request):
     if request.method == "POST":
+        user = request.user
+
+        if not user.is_authenticated:
+            redirect_url = reverse('users:signin')
+            return JsonResponse({"message": "로그인 후 사용 가능합니다.", "redirect_url": redirect_url})
+        
         request_data = json.loads(request.body)
-        request_data["user"] = request.user
+        request_data["user"] = user
         request_data["product"] = get_object_or_404(Product, handle = request_data.get("product"))
 
         try:
@@ -33,9 +39,11 @@ def cart_add(request):
             return JsonResponse({"message": "장바구니 담기에 성공했습니다.", "redirect_url": "/carts"})
         else:
             return JsonResponse({"message": form.errors.as_json()})
+    
+    return HttpResponseBadRequest()
 
 
-@login_required(login_url="/users/signin")
+@login_required
 @require_http_methods(['GET'])
 def cart_view(request) -> HttpResponse:
     """returns: HttpResponse that will query products"""
@@ -55,7 +63,8 @@ def cart_list(request) -> JsonResponse:
                 "quantity", 
                 "product__handle",
                 "product__name",
-                "product__price")
+                "product__price",
+                "product__stock")
 
     image_urls = [cart.product.get_image_url() for cart in filtered]
     book_urls = [cart.product.get_absolute_url() for cart in filtered]
@@ -67,7 +76,7 @@ def cart_list(request) -> JsonResponse:
     return JsonResponse({"items": list(items), "statusCode": 200}, safe=False)
 
 
-@login_required(login_url="/users/signin")
+@login_required
 @require_http_methods(['GET'])
 def checkout_view(request) -> HttpResponse:
     user = Cart.objects.filter(user=request.user).values("user_id")
@@ -101,7 +110,7 @@ def checkout_list(request) -> JsonResponse:
     return JsonResponse({"items": list(items), "statusCode": 200}, safe=False)
 
 
-@login_required(login_url="/users/signin")
+@login_required
 @require_http_methods(['PATCH'])
 def cart_update(request):
     """
@@ -132,6 +141,11 @@ def cart_update(request):
             .exists()
             for x in json_request]):
         raise FieldDoesNotExist()
+    for each_request in json_request:
+        quantity = each_request['value']['quantity']
+        stock = products.get(product_id=get_handle_from_path(each_request['path'])).product.stock
+        if not quantity <= stock:
+            raise ValidationError(f"Cart.quantity ({quantity}) exceeds Product.stock ({stock})")
 
     # let's DO update!
     for each_patch in json_request:
@@ -159,7 +173,7 @@ def cart_update(request):
 
 
 
-@login_required(login_url="/users/signin")
+@login_required
 def cart_delete(request):
     if request.method == "DELETE":
         Cart.objects.get(user = request.user, product = get_object_or_404(Product, handle = json.loads(request.body).get("product"))).delete()

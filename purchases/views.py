@@ -3,7 +3,7 @@ from django.shortcuts import get_object_or_404
 import requests
 from products.models import Product
 from carts.models import Cart
-from .models import Purchase
+from .models import Purchase, PurchaseItem
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, HttpResponseBadRequest, JsonResponse, HttpResponseRedirect
 from django.urls import reverse
@@ -32,14 +32,20 @@ def stripe_start(request):
     purchase.stripe_price
     for item in items:
         product = Product.objects.get(handle=item['product__handle'])
-        product.stripe_price = product.price * 100
+        quantity = item['quantity']
+        PurchaseItem.objects.create(purchase=purchase, product=product, quantity=quantity)
+        product.stripe_price = product.price
         purchase.products.add(product)
         purchase.stripe_price += product.stripe_price
         products.append(product) 
         product.save()
         stripe_price_id_list.append(product.stripe_price_id)
     
+    order_name = f'{products[0].name} 외 {len(items) - 1}' if len(items) > 1 else products[0].name
+    purchase.order_name = order_name
+
     request.session['purchase_id'] = purchase.id
+    
     success_path = reverse("purchases:stripe_success")
     if not success_path.startswith("/"):
         success_path = f"/{success_path}"
@@ -81,6 +87,14 @@ def stripe_success(request):
         purchase.completed = True
         purchase.provider = "stripe"
         purchase.save()
+
+        for product in purchase.products.all():
+            cart = Cart.objects.get(product=product, user=request.user)
+            quantity = cart.quantity
+            product.stock -= quantity
+            product.save()
+            cart.delete()
+
         del request.session['purchase_id']
         return redirect('/purchases/orders/')
     return JsonResponse({'error': 'Purchase not found'})
@@ -97,12 +111,6 @@ def stripe_stopped(request):
         cart_view_url = f'{BASE_ENDPOINT}{reverse("carts:view")}'
         return redirect(cart_view_url)
     return HttpResponse("Purchase not found")
-
-
-@login_required
-def purchase_order_view(request):
-    purchases = Purchase.objects.filter(user=request.user, completed=True)
-    return render(request, "orders.html", {"purchases": purchases})
 
 
 @login_required
@@ -239,22 +247,26 @@ def stripe_payment_cancel(request, purchase_id):
                 if session.payment_status == 'paid':
                     payment_intent_id = session.payment_intent
                     amount = session.amount_total
-                    currency = session.currency.upper()
 
                     refund = stripe.Refund.create(
                         payment_intent=payment_intent_id,
                         amount=amount,
                     )
                     if refund.status == 'succeeded':
+                        products = purchase.products.all()
+                        
+                        for product in products:
+                            purchase_item = get_object_or_404(PurchaseItem, product=product, purchase=purchase)
+                            quantity = purchase_item.quantity
+                            product.stock += quantity
+                            product.save()
+                            
                         purchase.completed = False
                         purchase.save()
                         return redirect('purchases:orders')
                     else:
                         return HttpResponse("Failed to process refund")
                 else:
-                    # Payment was not successful, no refund needed
-                    purchase.completed = False
-                    purchase.save()
                     return redirect('purchases:orders')
             except stripe.error.StripeError as e:
                 print(str(e))
@@ -299,3 +311,10 @@ def kakaopay_payment_cancel(request, purchase_id):
         purchase.save()
 
     return HttpResponseBadRequest()
+
+
+@login_required
+def purchase_order_view(request):
+    purchases = Purchase.objects.filter(user=request.user)
+    return render(request, "orders.html", {"purchases": purchases})
+

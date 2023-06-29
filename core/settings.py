@@ -110,7 +110,7 @@ SOCIALACCOUNT_LOGIN_ON_GET = True
 ACCOUNT_SIGNUP_REDIRECT_URL = "/users/profile/"
 
 LOGIN_REDIRECT_URL = "/"
-LOGOUT_REDIRECT_URL = "/"
+LOGOUT_REDIRECT_URL = "/users/login/"
 
 WSGI_APPLICATION = "core.wsgi.application"
 
@@ -181,3 +181,4 @@ AUTH_USER_MODEL = "users.User"
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
+LOGIN_URL = '/users/signin/'

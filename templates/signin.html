@@ -152,16 +152,12 @@
         })
           .then(response => response.json())
           .then(data => {
-            
-            console.log(data);
-            console.log(data.status)
-            ;
             if (data.status === 200 ) {
-            window.location.href = data.redirect;
+                window.location.href = data.redirect;
             } 
-              else {
+            else {
                 alert(data.message);
-                      window.location.href = '/users/signin/';
+                window.location.href = '/users/signin/';
             }
           })
           .catch(error => console.log(error));

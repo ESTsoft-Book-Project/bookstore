@@ -1,10 +1,13 @@
-from django.shortcuts import render
+from django.forms import ValidationError
+from django.http import JsonResponse
+from django.shortcuts import redirect, render
 from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.decorators import login_required
+from django.urls import reverse
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
-from .serializers import UserSerializer, SignInSerializer
+from .serializers import PasswordSerializer, ProfileSerializer, UserSerializer, SignInSerializer
 from django.views.decorators.csrf import csrf_exempt
 
 
@@ -35,36 +38,54 @@ def signin(request):
             user = authenticate(request, email=email, password=password)
             if user is not None:
                 login(request, user)
-                return Response({'message': 'Login successful', 'redirect': '/'}, status=status.HTTP_200_OK )
+                return Response({'message': 'Login successful', 'redirect': '/', 'status': status.HTTP_200_OK}, status=status.HTTP_200_OK )
             else:
                 return Response({'message': 'Invalid username or password'})
         else: 
-            return Response(serializer.errors)
+            return Response({'message': serializer.errors['password']})
     return render(request, 'signin.html')
     
 
 @api_view(['GET', 'PATCH'])
-@login_required(login_url="/users/signin/")
+@login_required
 def profile(request):
     user = request.user
     if request.method == 'PATCH':
-        serializer = UserSerializer(user, data = request.data, partial = True)
+        serializer = ProfileSerializer(user, data = request.data, partial = True)
         if serializer.is_valid():
-            for field in request.data.keys():
-                if field != "password":
-                    setattr(user, field, request.data[field])
-                else:
-                    user.set_password(request.data[field])
-            user.save()
-            return Response({"result": True, "statusCode": 200, "message": "회원 정보 수정이 완료되었습니다."})
-    elif request.method == "GET":
-        serializer = UserSerializer(user)
-        return render(request, "profile.html", {"user": serializer.data})
-    else:
-            return Response({"result": False, "statusCode": 400, "message": "에러가 발생했습니다."})
+            serializer.save()
+            logout(request)
+            redirect_url = reverse('users:signin')
+            return Response({"result": True, "statusCode": 200, "message": "회원 정보 수정이 완료되었습니다.", "redirect_url": redirect_url})
+    serializer = ProfileSerializer(user)
+    return render(request, "profile.html", {"user": serializer.data})
+
+
+@login_required
+@api_view(["GET", "PATCH"])
+def updatepassword(request):
+    if request.method == "PATCH":
+        user = request.user
+        serializer = PasswordSerializer(instance=user, data=request.data, partial=True)
+
+        try:
+            serializer.is_valid(raise_exception=True)
+            serializer.save(user=user)
+
+        except ValidationError:
+            return Response(serializer.errors, status=status.HTTP_403_FORBIDDEN)
+
+        logout(request)
+        return Response({
+            "message": "성공적으로 비밀번호 수정이 완료되었습니다.",
+            "redirect_url": reverse("users:signin")
+        }, status=status.HTTP_200_OK)
+
+    return render(request, "updatepassword.html")
+
 
 @api_view(["DELETE"])
-@login_required(login_url="/users/signin/")
+@login_required
 def delete_user(request):
     if request.method == "DELETE":
         user = request.user
@@ -74,10 +95,11 @@ def delete_user(request):
     else:
         return Response({"result": False})
 
-@api_view(["GET"])
+@api_view(["POST"])
+@login_required
 def signout(request):
-    if request.method == 'GET':
-        logout(request)
-        return render(request, 'signin.html')
-    else:
-        return Response({'result': False, 'message': '잘못된 요청입니다.'})
+    logout(request)
+    return JsonResponse(
+        {"statusCode": 200,
+         "message": "Succesfully Logged Out", 
+         "redirect_url": reverse("users:signin")})

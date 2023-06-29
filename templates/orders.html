@@ -23,7 +23,7 @@
             ${{ purchase.stripe_price }}
             {% endif %}
             </td>
-            <td class="border border-gray-300 px-4 py-2">{% if purchase.completed %}Yes{% else %}No{% endif %}</td>
+            <td class="border border-gray-300 px-4 py-2">{% if purchase.completed %}Completed{% else %}Canceled{% endif %}</td>
             <td class="border border-gray-300 px-4 py-2">
               {% if purchase.completed %}
                 {% if purchase.provider == "stripe" %}
