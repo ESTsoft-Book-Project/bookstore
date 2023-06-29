@@ -17,21 +17,20 @@
         {% csrf_token %}
         <h1>프로필</h1>
         <label for="email">이메일:</label>
-        <input type="email" id="email" name="email" value="{{ user.email }}" readonly /><br /><br />
+        <input type="email" id="email" name="email" value="{{ user.email }}" /><br /><br />
 
         <label for="nickname">닉네임:</label>
         <input type="text" id="nickname" name="nickname" value="{{ user.nickname }}" placeholder="닉네임을 입력해 주세요!" required /><br /><br />
 
-        <!-- <label for="password">비밀번호:</label> -->
-        <!-- <input type="password" id="password" name="password" /><br /><br /> -->
-        <input type="submit" value="수정하기" />
+        <label for="password">비밀번호 확인:</label>
+        <input type="password" id="password" name="password" /><br /><br />
+        <input type="submit" value="수정하기" class="btn btn-primary m-2" />
     </form>
-
-    <div><a href="{% url 'users:updatepassword' %}" class="btn btn-primary">비밀번호 수정</a></div>
+    <a href="{% url 'users:updatepassword' %}" class="btn btn-primary m-2">비밀번호 수정</a>
 
     <form id="userDelete" method="post">
         {% csrf_token %}
-        <input type="submit" value="계정 삭제하기" />
+        <input type="submit" value="계정 삭제하기" class="btn btn-primary m-2" />
     </form>
 
     <script>
@@ -43,11 +42,9 @@
                 "nickname": document.querySelector("#nickname").value,
             }
 
-            /*
             if (document.querySelector("#password").value) {
                 userData.password = document.querySelector("#password").value;
             }
-            */
 
             fetch("/users/profile/", {
                 method: "PATCH",
@@ -57,10 +54,33 @@
                 },
                 body: JSON.stringify(userData)
             })
-                .then(res => res.json())
+                .then(res => {
+                    if (res.status !== 200) {
+                        return Promise.reject(res);
+                    }
+                    return res.json();
+                })
                 .then(data => {
                     alert(data.message)
                     window.location.href = data.redirect_url
+                }).catch(error => {
+                    if (typeof error.json === "function") {
+                        error.json()
+                            .then(jsonError => {
+                                let errorMsg = "";
+                                for (const [cause, desc] of Object.entries(jsonError)) {
+                                    errorMsg = errorMsg.concat(`${cause}: ${desc}\n`);
+                                }
+                                alert(errorMsg);
+                            })
+                            .catch((e) => {
+                                alert("알 수 없는 에러 발생! 콘솔을 확인하세요.");
+                                console.error(e);
+                            })
+                    } else {
+                        alert("알 수 없는 에러 발생! 콘솔을 확인하세요.");
+                        console.error(e);
+                    }
                 });
         });
 

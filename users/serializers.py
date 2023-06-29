@@ -43,13 +43,23 @@ class SignInSerializer(serializers.Serializer):
 
 
 class ProfileSerializer(serializers.ModelSerializer):
-    password = serializers.CharField(write_only=True)
+    """password는 확인하는 용도로 사용, email, nickname을 수정하는데 사용.
+    참고: 초기값이 마치 placeholder처럼 지정되어있어야 한다."""
+    password = serializers.CharField(write_only=True, required=True)
     email = serializers.EmailField(max_length=150)
-    nickname = serializers.CharField(write_only=True)
+    nickname = serializers.CharField(max_length=255)
 
     class Meta:
         model = User
         fields = ["email", "nickname", "password"]
+
+    def update(self, instance: User, validated_data):
+        if not instance.check_password(validated_data.get("password")):
+            raise serializers.ValidationError({"password": "사용자 비밀번호가 틀렸습니다."})
+        instance.email = validated_data.get("email")
+        instance.nickname = validated_data.get("nickname")
+        instance.save()
+        return instance
 
 
 class PasswordSerializer(serializers.ModelSerializer):

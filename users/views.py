@@ -7,7 +7,7 @@ from django.urls import reverse
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
-from .serializers import PasswordSerializer, UserSerializer, SignInSerializer
+from .serializers import PasswordSerializer, ProfileSerializer, UserSerializer, SignInSerializer
 from django.views.decorators.csrf import csrf_exempt
 
 
@@ -51,22 +51,14 @@ def signin(request):
 def profile(request):
     user = request.user
     if request.method == 'PATCH':
-        serializer = UserSerializer(user, data = request.data, partial = True)
+        serializer = ProfileSerializer(user, data = request.data, partial = True)
         if serializer.is_valid():
-            for field in request.data.keys():
-                if field != "password":
-                    setattr(user, field, request.data[field])
-                else:
-                    user.set_password(request.data[field])
-            user.save()
+            serializer.save()
             logout(request)
             redirect_url = reverse('users:signin')
             return Response({"result": True, "statusCode": 200, "message": "회원 정보 수정이 완료되었습니다.", "redirect_url": redirect_url})
-    elif request.method == "GET":
-        serializer = UserSerializer(user)
-        return render(request, "profile.html", {"user": serializer.data})
-    else:
-        return Response({"result": False, "statusCode": 400, "message": "에러가 발생했습니다."})
+    serializer = ProfileSerializer(user)
+    return render(request, "profile.html", {"user": serializer.data})
 
 
 @login_required
