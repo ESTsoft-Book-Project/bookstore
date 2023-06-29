@@ -47,7 +47,7 @@ def signin(request):
     
 
 @api_view(['GET', 'PATCH'])
-@login_required(login_url="/users/signin/")
+@login_required
 def profile(request):
     user = request.user
     if request.method == 'PATCH':
@@ -85,7 +85,7 @@ def updatepassword(request):
 
 
 @api_view(["DELETE"])
-@login_required(login_url="/users/signin/")
+@login_required
 def delete_user(request):
     if request.method == "DELETE":
         user = request.user
@@ -96,7 +96,7 @@ def delete_user(request):
         return Response({"result": False})
 
 @api_view(["POST"])
-@login_required()
+@login_required
 def signout(request):
     logout(request)
     return JsonResponse(
