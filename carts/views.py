@@ -5,18 +5,23 @@ from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.urls import Resolver404, reverse
 from django.views.decorators.http import require_http_methods
-from django.http import HttpResponse, JsonResponse
+from django.http import HttpResponse, HttpResponseBadRequest, JsonResponse
 from django.core.exceptions import FieldDoesNotExist
 from .forms import CartForm
 from .models import Cart
 from .models import Product
 
 
-@login_required(login_url="/users/signin")
 def cart_add(request):
     if request.method == "POST":
+        user = request.user
+
+        if not user.is_authenticated:
+            redirect_url = reverse('users:signin')
+            return JsonResponse({"message": "로그인 후 사용 가능합니다.", "redirect_url": redirect_url})
+        
         request_data = json.loads(request.body)
-        request_data["user"] = request.user
+        request_data["user"] = user
         request_data["product"] = get_object_or_404(Product, handle = request_data.get("product"))
 
         try:
@@ -34,6 +39,8 @@ def cart_add(request):
             return JsonResponse({"message": "장바구니 담기에 성공했습니다.", "redirect_url": "/carts"})
         else:
             return JsonResponse({"message": form.errors.as_json()})
+    
+    return HttpResponseBadRequest()
 
 
 @login_required(login_url="/users/signin")
