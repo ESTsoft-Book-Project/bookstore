@@ -22,10 +22,12 @@
         <label for="nickname">닉네임:</label>
         <input type="text" id="nickname" name="nickname" value="{{ user.nickname }}" placeholder="닉네임을 입력해 주세요!" required /><br /><br />
 
-        <label for="password">비밀번호:</label>
-        <input type="password" id="password" name="password" /><br /><br />
+        <!-- <label for="password">비밀번호:</label> -->
+        <!-- <input type="password" id="password" name="password" /><br /><br /> -->
         <input type="submit" value="수정하기" />
     </form>
+
+    <div><a href="{% url 'users:updatepassword' %}" class="btn btn-primary">비밀번호 수정</a></div>
 
     <form id="userDelete" method="post">
         {% csrf_token %}
@@ -41,9 +43,11 @@
                 "nickname": document.querySelector("#nickname").value,
             }
 
+            /*
             if (document.querySelector("#password").value) {
                 userData.password = document.querySelector("#password").value;
             }
+            */
 
             fetch("/users/profile/", {
                 method: "PATCH",

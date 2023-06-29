@@ -1,12 +1,13 @@
+from django.forms import ValidationError
 from django.http import JsonResponse
-from django.shortcuts import render
+from django.shortcuts import redirect, render
 from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.decorators import login_required
 from django.urls import reverse
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
-from .serializers import UserSerializer, SignInSerializer
+from .serializers import PasswordSerializer, UserSerializer, SignInSerializer
 from django.views.decorators.csrf import csrf_exempt
 
 
@@ -66,6 +67,30 @@ def profile(request):
         return render(request, "profile.html", {"user": serializer.data})
     else:
         return Response({"result": False, "statusCode": 400, "message": "에러가 발생했습니다."})
+
+
+@login_required
+@api_view(["GET", "PATCH"])
+def updatepassword(request):
+    if request.method == "PATCH":
+        user = request.user
+        serializer = PasswordSerializer(instance=user, data=request.data, partial=True)
+
+        try:
+            serializer.is_valid(raise_exception=True)
+            serializer.save(user=user)
+
+        except ValidationError:
+            return Response(serializer.errors, status=status.HTTP_403_FORBIDDEN)
+
+        logout(request)
+        return Response({
+            "message": "성공적으로 비밀번호 수정이 완료되었습니다.",
+            "redirect_url": reverse("users:signin")
+        }, status=status.HTTP_200_OK)
+
+    return render(request, "updatepassword.html")
+
 
 @api_view(["DELETE"])
 @login_required(login_url="/users/signin/")

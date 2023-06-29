@@ -42,3 +42,37 @@ class SignInSerializer(serializers.Serializer):
         return data
 
 
+class ProfileSerializer(serializers.ModelSerializer):
+    password = serializers.CharField(write_only=True)
+    email = serializers.EmailField(max_length=150)
+    nickname = serializers.CharField(write_only=True)
+
+    class Meta:
+        model = User
+        fields = ["email", "nickname", "password"]
+
+
+class PasswordSerializer(serializers.ModelSerializer):
+    password = serializers.CharField(write_only=True)
+    password1 = serializers.CharField(write_only=True)
+    password2 = serializers.CharField(write_only=True)
+
+    class Meta:
+        model = User
+        fields = ["password", "password1", "password2"]
+
+    def validate(self, attrs):
+        password_validation.validate_password(attrs["password1"])
+            # raise serializers.ValidationError({"password1": "새 비밀번호가 조건을 만족하지 않습니다."})
+        if attrs["password1"] != attrs["password2"]:
+            raise serializers.ValidationError({"password1": "새 비밀번호가 서로 일치하지 않습니다."})
+        if attrs["password"] == attrs["password1"]:
+            raise serializers.ValidationError({"password1": "비밀번호는 이전에 사용하던 것을 사용할 수 없습니다."})
+        return attrs
+
+    def update(self, instance, validated_data):
+        if not instance.check_password(validated_data.get("password")):
+            raise serializers.ValidationError({"password": "사용자 비밀번호가 틀렸습니다."})
+        instance.set_password(validated_data.get("password2"))
+        instance.save()
+        return instance
