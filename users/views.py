@@ -46,7 +46,7 @@ def signin(request):
     
 
 @api_view(['GET', 'PATCH'])
-@login_required(login_url="/users/signin/")
+@login_required
 def profile(request):
     user = request.user
     if request.method == 'PATCH':
@@ -68,7 +68,7 @@ def profile(request):
         return Response({"result": False, "statusCode": 400, "message": "에러가 발생했습니다."})
 
 @api_view(["DELETE"])
-@login_required(login_url="/users/signin/")
+@login_required
 def delete_user(request):
     if request.method == "DELETE":
         user = request.user
@@ -79,7 +79,7 @@ def delete_user(request):
         return Response({"result": False})
 
 @api_view(["POST"])
-@login_required()
+@login_required
 def signout(request):
     logout(request)
     return JsonResponse(

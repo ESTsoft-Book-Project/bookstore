@@ -12,7 +12,7 @@ from .models import Cart
 from .models import Product
 
 
-@login_required(login_url="/users/signin")
+@login_required
 def cart_add(request):
     if request.method == "POST":
         request_data = json.loads(request.body)
@@ -36,7 +36,7 @@ def cart_add(request):
             return JsonResponse({"message": form.errors.as_json()})
 
 
-@login_required(login_url="/users/signin")
+@login_required
 @require_http_methods(['GET'])
 def cart_view(request) -> HttpResponse:
     """returns: HttpResponse that will query products"""
@@ -69,7 +69,7 @@ def cart_list(request) -> JsonResponse:
     return JsonResponse({"items": list(items), "statusCode": 200}, safe=False)
 
 
-@login_required(login_url="/users/signin")
+@login_required
 @require_http_methods(['GET'])
 def checkout_view(request) -> HttpResponse:
     user = Cart.objects.filter(user=request.user).values("user_id")
@@ -103,7 +103,7 @@ def checkout_list(request) -> JsonResponse:
     return JsonResponse({"items": list(items), "statusCode": 200}, safe=False)
 
 
-@login_required(login_url="/users/signin")
+@login_required
 @require_http_methods(['PATCH'])
 def cart_update(request):
     """
@@ -166,7 +166,7 @@ def cart_update(request):
 
 
 
-@login_required(login_url="/users/signin")
+@login_required
 def cart_delete(request):
     if request.method == "DELETE":
         Cart.objects.get(user = request.user, product = get_object_or_404(Product, handle = json.loads(request.body).get("product"))).delete()

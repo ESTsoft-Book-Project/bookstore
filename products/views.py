@@ -36,7 +36,7 @@ def new_id():
     return 1
 
 
-@login_required(login_url="/users/signin/")
+@login_required
 def create_product(request):
     if request.method == "POST":
         request_data = json.loads(request.body)
@@ -62,7 +62,7 @@ def create_product(request):
         return render(request, 'create_product.html')
 
 
-@login_required(login_url="/users/signin/")
+@login_required
 def update_product(request, handle):
     book = get_object_or_404(Product, handle=handle)
     context = {"book": book}
