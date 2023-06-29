@@ -83,12 +83,9 @@
               alert("JSON 파싱 에러! 콘솔창을 확인하세요.");
               console.log(e);
             })
-        }
-        if (typeof res.json === "function") {
-          
         } else {
           alert("알 수 없는 에러! 콘솔창을 확인하세요.");
-          console.log(res);
+          console.log(e);
         }
       });
   };
