@@ -110,7 +110,7 @@ SOCIALACCOUNT_LOGIN_ON_GET = True
 ACCOUNT_SIGNUP_REDIRECT_URL = "/users/profile/"
 
 LOGIN_REDIRECT_URL = "/"
-LOGOUT_REDIRECT_URL = "/"
+LOGOUT_REDIRECT_URL = "/users/login/"
 
 WSGI_APPLICATION = "core.wsgi.application"
 

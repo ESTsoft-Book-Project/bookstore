@@ -8,7 +8,7 @@ from users.models import User
 class Product(models.Model):
     name = models.CharField(max_length=255)
     handle = models.SlugField(max_length=255, unique=True)
-    price = models.DecimalField(max_digits=8, decimal_places=2)
+    price = models.DecimalField(max_digits=8, decimal_places=0)
     image = models.ImageField(upload_to='product_images/', blank=True, null=True)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     created = models.DateTimeField(auto_now_add=True)
