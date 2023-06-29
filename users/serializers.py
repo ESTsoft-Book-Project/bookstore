@@ -1,6 +1,8 @@
 from rest_framework import serializers
+from rest_framework.exceptions import APIException
 from .models import User
 from django.contrib.auth import password_validation
+from django.db import IntegrityError
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -58,7 +60,10 @@ class ProfileSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError({"password": "사용자 비밀번호가 틀렸습니다."})
         instance.email = validated_data.get("email")
         instance.nickname = validated_data.get("nickname")
-        instance.save()
+        try:
+            instance.save()
+        except IntegrityError as e:
+            raise APIException(detail=f"사용할 수 없는 필드입니다.\n{e}") from e
         return instance
 
 
