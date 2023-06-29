@@ -28,14 +28,28 @@
 </form>
 
 <script>
-  document.querySelector(".productCreate").addEventListener("submit", function (e) {
-  e.preventDefault();
 
-  const fileInput = document.querySelector("#image");
-  const imageFile = fileInput.files[0];
-
+  const $fileInput = document.querySelector("#image");
   const reader = new FileReader();
-  reader.onloadend = function () {
+  let imageFile = $fileInput.files[0];
+
+  $fileInput.onchange = onChange;
+  reader.onloadend = onLoadend;
+
+  document.querySelector(".productCreate").addEventListener("submit", function (e) {
+    e.preventDefault();
+    reader.readAsDataURL(imageFile);
+  });
+
+  function onChange() {
+    if ($fileInput.files[0].size > 2500000) {
+      alert("2.5MB 이상의 파일은 담을 수 없습니다.");
+      $fileInput.value = null;
+    }
+    imageFile = $fileInput.files[0];
+  }
+
+  function onLoadend() {
     const imageData = reader.result.split(",")[1];
 
     const data = {
@@ -76,22 +90,19 @@
 
           res.json().then(error => {
 
-              alert(error.message);
+            alert(error.message);
 
-            }).catch((e) => {
+          }).catch((e) => {
 
-              alert("JSON 파싱 에러! 콘솔창을 확인하세요.");
-              console.log(e);
-            })
+            alert("JSON 파싱 에러! 콘솔창을 확인하세요.");
+            console.log(e);
+          })
         } else {
           alert("알 수 없는 에러! 콘솔창을 확인하세요.");
           console.log(e);
         }
       });
   };
-
-  reader.readAsDataURL(imageFile);
-});
 
 </script>
 {% endblock content %}
