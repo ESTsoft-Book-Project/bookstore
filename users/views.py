@@ -7,7 +7,7 @@ from django.urls import reverse
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
-from .serializers import PasswordSerializer, ProfileSerializer, UserSerializer, SignInSerializer
+from .serializers import PasswordSerializer, ProfileSerializer, UserSerializer, SignInSerializer, SocialSignupSerializer
 from django.views.decorators.csrf import csrf_exempt
 
 
@@ -27,6 +27,23 @@ def signup(request):
     return render(request, 'signup.html')
     
 
+@api_view(['GET', 'PATCH'])
+@login_required
+def social_signup(request):
+    user = request.user
+    if request.method == 'PATCH':
+        serializer = SocialSignupSerializer(user, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            email = serializer.validated_data['email']
+            password = serializer.validated_data['password1']
+            user = authenticate(request, email=email, password=password)
+            login(request, user)
+            return Response({'success': True, 'message': '회원가입이 완료되었습니다.', 'redirect': '/'})
+    serializer = SocialSignupSerializer(user)
+    return render(request, "social_signup.html", {"user": serializer.data})
+
+
 @csrf_exempt
 @api_view(['POST', 'GET'])
 def signin(request):
@@ -44,7 +61,7 @@ def signin(request):
         else: 
             return Response({'message': serializer.errors['password']})
     return render(request, 'signin.html')
-    
+
 
 @api_view(['GET', 'PATCH'])
 @login_required
