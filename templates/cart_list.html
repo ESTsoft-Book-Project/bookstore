@@ -60,6 +60,7 @@
 
     const csrftoken = getCookie("csrftoken");
     const $total = document.querySelector("#total");
+    const $order = document.getElementById("order-btn");
     let total = {
         value: 0,
         getValue: function () { return this.value; },
@@ -69,6 +70,14 @@
         },
         updateDom: function () {
             $total.innerText = `총액: ${this.value} 원`;
+
+            //SECTION - checkbox 선택을 하지 않으면 주문 버튼이 비활성화
+            if (items.every((e) => !e.product.checked)) {
+                $order.disabled = true;
+            } else {
+                $order.disabled = false;
+            }
+            //!SECTION
         }
     };
 
@@ -174,7 +183,7 @@
         //!SECTION
     }
 
-    document.getElementById("order-btn").addEventListener("click", function () {
+    $order.addEventListener("click", function () {
 
         const create_patch_item = (op, path, value) => {
             return {
@@ -204,6 +213,7 @@
                 }
             });
     });
+
     //!SECTION
 
 
