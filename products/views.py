@@ -1,7 +1,7 @@
 import json
 import base64
-from django.shortcuts import render, get_object_or_404
-from django.http import JsonResponse, HttpResponse
+from django.shortcuts import redirect, render, get_object_or_404
+from django.http import HttpResponseBadRequest, JsonResponse, HttpResponse
 from django.contrib.auth.decorators import login_required
 from django.urls import reverse
 from slugify import slugify
@@ -108,49 +108,62 @@ def update_product(request, handle):
 
 
 def delete_product(request, handle):
-    book = Product.objects.get(handle=handle)
-    user = request.user
+    if request.method == 'DELETE':
+        user = request.user
 
-    if user == book.user:
-        book.delete()
-        redirect_url = reverse('book:book_list')
-        return JsonResponse({"message": "도서 정보가 삭제되었습니다.", 'redirect': redirect_url, 'statusCode': 200}, status=200)
-    else:
-        return JsonResponse({"message": "상품을 삭제할 권한이 없습니다.", 'redirect': '/products/book/', 'statusCode': 403}, status=403)
+        if not user.is_authenticated:
+            redirect_url = reverse('users:signin')
+            return JsonResponse({'message': '로그인이 필요합니다.', 'redirect': redirect_url, 'statusCode': 403})
+    
+        book = Product.objects.get(handle=handle)
+
+        if user == book.user:
+            book.delete()
+            redirect_url = reverse('book:book_list')
+            return JsonResponse({'message': '도서 정보가 삭제되었습니다.', 'redirect': redirect_url, 'statusCode': 200}, status=200)
+        
+        return JsonResponse({'message': '상품을 삭제할 권한이 없습니다.', 'redirect': '/products/book/', 'statusCode': 403}, status=403)
+        
+    return HttpResponseBadRequest()
 
 
 def create_comment(request, handle):
-    if request.method == "POST":
-        request_data = json.loads(request.body)
-        comment_content = request_data.get('content')
-        book = get_object_or_404(Product, handle=handle)
+    if request.method == 'POST':
         user = request.user
+        request_data = json.loads(request.body)
 
+        if not user.is_authenticated:
+            redirect_url = reverse('users:signin')
+            return JsonResponse({'message': '로그인이 필요합니다.', 'redirect': redirect_url})
+        
+        book = get_object_or_404(Product, handle=handle)
+        comment_content = request_data.get('content')
+        
         if comment_content:
             comment = Comment(comment=comment_content, book=book, user=user)
             comment.save()
-
-            comment_data = {
-                'id': comment.id,
-                'content': comment.comment,
-                'date': comment.date.strftime('%Y-%m-%d %H:%M:%S'),
-            }
             return JsonResponse({"message": "댓글이 작성되었습니다.", 'redirect': f'/products/book/{handle}'},status=200)
-        else:
-            return JsonResponse({'error': '댓글 내용을 제공해야 합니다.'}, status=400)
-    comments = Comment.objects.filter(book=book)
-    context = {
-        'book': book,
-        'comments': comments,
-    }
-    return render(request, "book_detal.html", context)
+        
+        return JsonResponse({'error': '댓글 내용을 제공해야 합니다.'}, status=400)
+    
+    return HttpResponseBadRequest()
+
 
 def delete_comment(request, handle, comment_id):
-    book = get_object_or_404(Product, handle=handle)
-    comment = get_object_or_404(Comment, id=comment_id, book=book)
+    if request.method == 'DELETE':
+        user = request.user
 
-    if request.method == "DELETE":
+        if not user.is_authenticated:
+            redirect_url = reverse('users:signin')
+            return JsonResponse({'message': '로그인이 필요합니다.', 'redirect': redirect_url})
+        
+        book = get_object_or_404(Product, handle=handle)
+        comment = get_object_or_404(Comment, id=comment_id, book=book)
+
+        if comment.user != user:
+            return JsonResponse({'error': '삭제 권한이 없습니다.'}, status=400)
+        
         comment.delete()
-        return JsonResponse({"message": "댓글이 삭제되었습니다.", 'redirect': f'/products/book/{handle}'}, status=200)
-    else:
-        return JsonResponse({'error': '잘못된 요청입니다.'}, status=400)
+        return JsonResponse({'message': '댓글이 삭제되었습니다.', 'redirect': f'/products/book/{handle}'}, status=200)
+    
+    return HttpResponseBadRequest()

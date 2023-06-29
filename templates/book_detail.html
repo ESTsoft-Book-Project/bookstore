@@ -47,12 +47,14 @@
 </ul>
 {% endif %}
 
+
+{% if user.is_authenticated %}
 <form id="commentForm" method="post">
     {% csrf_token %}
     <textarea id="id_content" rows="4" cols="50"></textarea><br>
     <button type="submit">Submit</button>
 </form>
-
+{% endif %}
 </div>
 
 <script>
@@ -61,10 +63,9 @@
 
     if (deleteBtn) {
         deleteBtn.addEventListener('click', function (e) {
-
             e.preventDefault();
-
             const url = '/products/book/delete/' + '{{ book.handle }}';
+            
             
             fetch(url, {
                 method: 'DELETE',
@@ -74,14 +75,12 @@
             })
                 .then(response => response.json())
                 .then(data => {
-                    if (data.statusCode == 200) {
+                    if (data.statusCode === 200) {
                         window.location.href = data.redirect;
                     }
-                    else if (data.statusCode == 401) {
+                    else if (data.statusCode === 403) {
+                        alert(data.message);
                         window.location.href = data.redirect;
-                    }
-                    else if (data.statusCode == 403) {
-                        alert('상품 삭제 권한이 없습니다');
                     }
                 })
                 .catch(
@@ -126,7 +125,11 @@
             .then(response => response.json())
             .then(data => {
                 if (data.message) {
+                    alert(data.message)
                     window.location.href = data.redirect;
+                }
+                else if (data.error) {
+                    alert(data.error)
                 }
             })
             .catch(error => console.log(error));
@@ -151,7 +154,11 @@
                 .then(response => response.json())
                 .then(data => {
                     if (data.message) {
+                        alert(data.message)
                         window.location.href = data.redirect;
+                    }
+                    else if (data.error) {
+                        alert(data.error)
                     }
                 })
                 .catch(error => console.log(error));
