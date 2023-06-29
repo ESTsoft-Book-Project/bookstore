@@ -1,5 +1,7 @@
+import http
 import json
 import base64
+from django.core.exceptions import RequestDataTooBig
 from django.shortcuts import render, get_object_or_404
 from django.http import JsonResponse, HttpResponse
 from django.contrib.auth.decorators import login_required
@@ -54,7 +56,11 @@ def create_product(request):
                 product.image.save(handle, ContentFile(image_data), save=False)
             product.handle = handle
             product.user = request.user
-            product.save()
+            try:
+                product.save()
+            except RequestDataTooBig as e:
+                return JsonResponse({"message": e}, status=http.HTTPStatus.FORBIDDEN)
+
             return JsonResponse({"message": "신규 도서 등록이 완료되었습니다.", "redirect_url": "/products/book/"})
         else:
             return JsonResponse({"message": form.errors.as_json()})

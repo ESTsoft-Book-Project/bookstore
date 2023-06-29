@@ -55,10 +55,41 @@
       },
       body: JSON.stringify(data)
     })
-      .then(res => res.json())
+      .then(res => {
+        if (res.status !== 200) {
+          return Promise.reject(res);
+        }
+        return res.json()
+      })
       .then(data => {
         alert(data.message);
         window.location.href = data.redirect_url;
+      }).catch(res => {
+        const contentType = res.headers.get("Content-Type").split(";")[0];
+        if (contentType === "text/html") {
+
+          res.text().then(html => {
+            document.body.innerHTML = html;
+          })
+
+        } else if (contentType === "application/json") {
+
+          res.json().then(error => {
+
+              alert(error.message);
+
+            }).catch((e) => {
+
+              alert("JSON 파싱 에러! 콘솔창을 확인하세요.");
+              console.log(e);
+            })
+        }
+        if (typeof res.json === "function") {
+          
+        } else {
+          alert("알 수 없는 에러! 콘솔창을 확인하세요.");
+          console.log(res);
+        }
       });
   };
 
