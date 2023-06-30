@@ -11,5 +11,5 @@ urlpatterns = [
     path('kakaopay_success/', views.kakaopay_success, name='kakaopay_success'),
     path('kakaopay_stopped/', views.kakaopay_stopped, name='kakaopay_stopped'),
     path('cancel/<int:purchase_id>/', views.stripe_payment_cancel, name='stripe_payment_cancel'),
-    path('cancel/<int:purchase_id>/', views.kakaopay_payment_cancel, name='kakaopay_payment_cancel'),
+    path('kakao_cancel/<int:purchase_id>/', views.kakaopay_payment_cancel, name='kakaopay_payment_cancel'),
 ]

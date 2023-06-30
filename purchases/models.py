@@ -5,7 +5,6 @@ from products.models import Product
 class Purchase(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     order_name = models.CharField(max_length=255)
-    products = models.ManyToManyField(Product)
     timestamp = models.DateTimeField(auto_now_add=True)
     completed = models.BooleanField(default=False)
     provider = models.CharField(max_length=220, blank=True, null=True)

@@ -126,21 +126,25 @@ def kakaopay_start(request):
         return HttpResponseBadRequest()
     
     products = []
-    total_price = 0
+    total_price, price = 0, 0
     items_count = len(items)
     purchase = Purchase.objects.create(user=request.user)
-    price = 0
+    product_name = ''
     for item in items:
-        product = Product.objects.get(handle=item['product__handle'])
-        products.append(product)
-        price = product.price * item['quantity']
+        product_handle = item['product__handle']
+        product = Product.objects.get(handle=product_handle)
+        product_quantity = item['quantity']
+        product_name = product.name if not product_name else product_name
+
+        PurchaseItem.objects.create(purchase=purchase, product=product, quantity=product_quantity)
+        price = product.price * product_quantity
         total_price += price
-        purchase.products.add(product)
+        products.append(product)
     
     if items_count > 1:
-        order_name = f'{products[0].name} 외 {items_count - 1}'
+        order_name = f'{product_name} 외 {items_count - 1}'
     else:
-        order_name = products[0].name
+        order_name = product_name
     
     purchase.order_name = order_name
     purchase.kakaopay_price = total_price
@@ -216,6 +220,17 @@ def kakaopay_success(request):
     
     if result.get('msg'):
         return JsonResponse({'error': 'Purchase not found'})
+    
+    purchase_items = PurchaseItem.objects.filter(purchase=purchase)
+    products = []
+    for item in purchase_items:
+        item.product.stock -= item.quantity
+        products.append(item.product)
+
+    Product.objects.bulk_update(products, ['stock'])
+    carts = Cart.objects.filter(product__in=products, user=purchase.user)
+    carts.delete()
+
     purchase.completed = True
     purchase.save()
     del request.session['purchase_id']
@@ -303,12 +318,18 @@ def kakaopay_payment_cancel(request, purchase_id):
 
         if result.get('msg'):
             return HttpResponse("Failed to cancel")
-    
+
+        purchase_items = PurchaseItem.objects.filter(purchase=purchase)
+        products = []
+        for item in purchase_items:
+            item.product.stock += item.quantity
+            products.append(item.product)
+
+        Product.objects.bulk_update(products, ['stock'])
+
         purchase.completed = False
-        purchase.provider = ''
-        purchase.kakaopay_checkout_tid = ''
-        purchase.kakaopay_price = 0
         purchase.save()
+        return redirect('purchases:orders')
 
     return HttpResponseBadRequest()
 
