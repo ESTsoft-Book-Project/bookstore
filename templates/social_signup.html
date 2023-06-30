@@ -18,16 +18,6 @@
     <label for="password2">비밀번호 확인:</label>
     <input type="password" id="password2" name="password2" required /><br /><br />
 
-    <!-- 에러 메시지 -->
-    {% if form.errors %}
-      <ul class="errorlist">
-        {% for field, errors in form.errors.items %}
-          {% for error in errors %}
-            <li>{{ error }}</li>
-          {% endfor %}
-        {% endfor %}
-      </ul>
-    {% endif %}
     <input type="submit" value="가입하기" />
   </form>
   <script>
@@ -39,7 +29,7 @@
         "nickname": document.querySelector("#nickname").value,
         "password1": document.querySelector("#password1").value,
         "password2": document.querySelector("#password2").value,
-      }
+      };
 
       fetch("/users/social/signup/", {
         method: "PATCH",
@@ -55,11 +45,11 @@
             alert(data.message);
             window.location.href = data.redirect;
           } else {
-            alert(data.message);
+            alert(data.errors + '\n' + data.message);
           }
         })
         .catch(error => {
-          console.error("에러:", error);
+          console.error("error:", error);
         });
     });
   </script>

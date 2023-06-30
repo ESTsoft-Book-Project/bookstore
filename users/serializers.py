@@ -35,6 +35,7 @@ class UserSerializer(serializers.ModelSerializer):
 
         return attrs
         
+
 class SocialSignupSerializer(serializers.ModelSerializer):
     password1 = serializers.CharField(required=True, write_only=True)
     password2 = serializers.CharField(required=True, write_only=True)
@@ -50,15 +51,25 @@ class SocialSignupSerializer(serializers.ModelSerializer):
     def update(self, instance: User, validated_data):
         password1 = validated_data.pop("password1")
         password2 = validated_data.pop("password2")
-
-        if password1 and password2 and password1 != password2:
+        if password1 != password2:
             raise serializers.ValidationError("비밀번호가 일치하지 않습니다.")
 
-        instance.nickname = validated_data.get('nickname', instance.nickname)
-        if password1:
-            instance.set_password(password1)
+        instance.nickname = validated_data.get('nickname')
+        instance.set_password(password1)
         instance.save()
+
         return instance
+    
+    def validate(self, attrs):
+        attrs = super().validate(attrs)
+        password1 = attrs.get('password1')
+        try:
+            password_validation.validate_password(password1)
+            
+        except DjangoValidationError as error:
+            raise serializers.ValidationError({'password1': error})
+
+        return attrs
 
 
 class SignInSerializer(serializers.Serializer):
