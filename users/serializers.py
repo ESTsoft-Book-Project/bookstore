@@ -3,7 +3,7 @@ from rest_framework.exceptions import APIException
 from .models import User
 from django.contrib.auth import password_validation
 from django.db import IntegrityError
-
+from django.core.exceptions import ValidationError as DjangoValidationError
 
 class UserSerializer(serializers.ModelSerializer):
     password1 = serializers.CharField(required=True, write_only=True)
@@ -22,8 +22,44 @@ class UserSerializer(serializers.ModelSerializer):
         password2 = validated_data.pop("password2")
         if password1 != password2:
             raise serializers.ValidationError("비밀번호가 일치하지 않습니다.")
-        user = User.objects.create_user(**validated_data, password=password1)
-        return user
+        return User.objects.create_user(**validated_data, password=password1)
+
+    def validate(self, attrs):
+        attrs = super().validate(attrs)
+        password1 = attrs.get('password1')
+        try:
+            password_validation.validate_password(password1)
+        
+        except DjangoValidationError as error:
+            raise serializers.ValidationError({'password1': error})
+
+        return attrs
+        
+class SocialSignupSerializer(serializers.ModelSerializer):
+    password1 = serializers.CharField(required=True, write_only=True)
+    password2 = serializers.CharField(required=True, write_only=True)
+    
+    class Meta:
+        model = User
+        fields = ['email', 'nickname', 'password1', 'password2']
+        extra_kwargs = {
+            'password1': {'write_only': True},
+            'password2': {'write_only': True}
+        }
+
+    def update(self, instance: User, validated_data):
+        password1 = validated_data.pop("password1")
+        password2 = validated_data.pop("password2")
+
+        if password1 and password2 and password1 != password2:
+            raise serializers.ValidationError("비밀번호가 일치하지 않습니다.")
+
+        instance.nickname = validated_data.get('nickname', instance.nickname)
+        if password1:
+            instance.set_password(password1)
+        instance.save()
+        return instance
+
 
 class SignInSerializer(serializers.Serializer):
     email = serializers.EmailField(max_length=150)

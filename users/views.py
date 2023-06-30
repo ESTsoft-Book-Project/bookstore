@@ -7,25 +7,42 @@ from django.urls import reverse
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
-from .serializers import PasswordSerializer, ProfileSerializer, UserSerializer, SignInSerializer
+from .serializers import PasswordSerializer, ProfileSerializer, UserSerializer, SignInSerializer, SocialSignupSerializer
 from django.views.decorators.csrf import csrf_exempt
-
-
-
+from rest_framework import serializers
 
 @csrf_exempt
 @api_view(['POST', 'GET'])
 def signup(request):
     if request.method == 'POST':
         serializer = UserSerializer(data=request.data)
-        if serializer.is_valid(raise_exception=True):
+        try:
+            serializer.is_valid(raise_exception=True)
             serializer.save()
             return Response({'success': True, 'message': '회원가입이 완료되었습니다.', 'redirect': '/users/signin/'})
-        else:
-            return Response({'success': False, 'message': '회원가입에 실패했습니다.', 'errors': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
-        
+        except serializers.ValidationError as error:
+            errors = error.detail.get('password1', [])
+            errors = errors[0] if len(errors) > 0 else ''
+            return Response({'success': False, 'message': '유효한 비밀번호가 아닙니다.', 'errors': errors}, status=status.HTTP_400_BAD_REQUEST)
     return render(request, 'signup.html')
     
+
+@api_view(['GET', 'PATCH'])
+@login_required
+def social_signup(request):
+    user = request.user
+    if request.method == 'PATCH':
+        serializer = SocialSignupSerializer(user, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            email = serializer.validated_data['email']
+            password = serializer.validated_data['password1']
+            user = authenticate(request, email=email, password=password)
+            login(request, user)
+            return Response({'success': True, 'message': '회원가입이 완료되었습니다.', 'redirect': '/'})
+    serializer = SocialSignupSerializer(user)
+    return render(request, "social_signup.html", {"user": serializer.data})
+
 
 @csrf_exempt
 @api_view(['POST', 'GET'])
@@ -44,7 +61,7 @@ def signin(request):
         else: 
             return Response({'message': serializer.errors['password']})
     return render(request, 'signin.html')
-    
+
 
 @api_view(['GET', 'PATCH'])
 @login_required

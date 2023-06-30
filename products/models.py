@@ -15,37 +15,6 @@ class Product(models.Model):
     updated = models.DateTimeField(auto_now=True)
     stock = models.IntegerField(default=0)
     
-    # purchases
-    stripe_price = models.IntegerField(default=1) # 100 * price
-    stripe_price_id = models.CharField(max_length=220, blank=True, null=True)
-    stripe_product_id = models.CharField(max_length=220, blank=True, null=True)
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        if self.price is not None:
-            self.stripe_price = self.price
-
-    def __str__(self):
-        return self.name
-    
-    def save(self, *args, **kwargs):
-        if self.name:
-            stripe_product_r = stripe.Product.create(name=self.name)
-            self.stripe_product_id = stripe_product_r.id
-        
-        if self.price:
-            self.stripe_price = self.price
-        super().save(*args, **kwargs)
-        
-        if not self.stripe_price_id:
-            stripe_price_obj = stripe.Price.create(
-                    product = self.stripe_product_id,
-                    unit_amount=self.stripe_price,
-                    currency='KRW'
-                )
-            self.stripe_price_id = stripe_price_obj.id
-        super().save(*args, **kwargs)
-
     def get_absolute_url(self):
         return reverse("book:book_detail", kwargs={"handle": self.handle})
     
