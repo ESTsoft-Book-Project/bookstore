@@ -26,22 +26,24 @@ def stripe_start(request):
     if not request.user.is_authenticated:
         return HttpResponseBadRequest()
     
-    products=[]
-    stripe_price_id_list=[]
+    purchase_items=[]
     purchase = Purchase.objects.create(user=request.user)
-    purchase.stripe_price
+    product_name = ''
+    total_price = 0
     for item in items:
         product = Product.objects.get(handle=item['product__handle'])
         quantity = item['quantity']
-        PurchaseItem.objects.create(purchase=purchase, product=product, quantity=quantity)
-        product.stripe_price = product.price
-        purchase.products.add(product)
-        purchase.stripe_price += product.stripe_price
-        products.append(product) 
-        product.save()
-        stripe_price_id_list.append(product.stripe_price_id)
+        product_name = product.name if not product_name else product_name
+        price = product.price * quantity
+        purchase_item = PurchaseItem.objects.create(
+            purchase=purchase, 
+            product=product, 
+            quantity=quantity
+            )
+        total_price += price
+        purchase_items.append(purchase_item)
     
-    order_name = f'{products[0].name} 외 {len(items) - 1}' if len(items) > 1 else products[0].name
+    order_name = f'{product_name} 외 {len(items) - 1}' if len(items) > 1 else product_name
     purchase.order_name = order_name
 
     request.session['purchase_id'] = purchase.id
@@ -58,11 +60,10 @@ def stripe_start(request):
     stopped_url = f"{BASE_ENDPOINT}{stopped_path}"
 
     line_items = []
-    for product in products:
-        cart = Cart.objects.get(product=product, user=request.user)
+    for item in purchase_items:
         line_item = {
-            "price": product.stripe_price_id,
-            "quantity": cart.quantity,
+            "price": item.stripe_price_id,
+            "quantity": item.quantity,
         }
         line_items.append(line_item)
 
@@ -73,7 +74,7 @@ def stripe_start(request):
         cancel_url=stopped_url
     )
     purchase.stripe_checkout_session_id = checkout_session.id
-    purchase.stripe_price = sum([product.stripe_price for product in products])
+    purchase.stripe_price = total_price
 
     purchase.save()
     return JsonResponse({'checkout_url': checkout_session.url})
@@ -88,12 +89,15 @@ def stripe_success(request):
         purchase.provider = "stripe"
         purchase.save()
 
-        for product in purchase.products.all():
-            cart = Cart.objects.get(product=product, user=request.user)
-            quantity = cart.quantity
-            product.stock -= quantity
-            product.save()
-            cart.delete()
+        purchase_items = PurchaseItem.objects.filter(purchase=purchase)
+        products = []
+        for item in purchase_items:
+            item.product.stock -= item.quantity
+            products.append(item.product)
+
+        Product.objects.bulk_update(products, ['stock'])
+        carts = Cart.objects.filter(product__in=products, user=purchase.user)
+        carts.delete()
 
         del request.session['purchase_id']
         return redirect('/purchases/orders/')
@@ -268,13 +272,13 @@ def stripe_payment_cancel(request, purchase_id):
                         amount=amount,
                     )
                     if refund.status == 'succeeded':
-                        products = purchase.products.all()
-                        
-                        for product in products:
-                            purchase_item = get_object_or_404(PurchaseItem, product=product, purchase=purchase)
-                            quantity = purchase_item.quantity
-                            product.stock += quantity
-                            product.save()
+                        purchase_items = PurchaseItem.objects.filter(purchase=purchase)
+                        products = []
+                        for item in purchase_items:
+                            item.product.stock += item.quantity
+                            products.append(item.product)
+
+                        Product.objects.bulk_update(products, ['stock'])
                             
                         purchase.completed = False
                         purchase.save()
