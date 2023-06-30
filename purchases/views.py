@@ -26,22 +26,24 @@ def stripe_start(request):
     if not request.user.is_authenticated:
         return HttpResponseBadRequest()
     
-    products=[]
-    stripe_price_id_list=[]
+    purchase_items=[]
     purchase = Purchase.objects.create(user=request.user)
-    purchase.stripe_price
+    product_name = ''
+    total_price = 0
     for item in items:
         product = Product.objects.get(handle=item['product__handle'])
         quantity = item['quantity']
-        PurchaseItem.objects.create(purchase=purchase, product=product, quantity=quantity)
-        product.stripe_price = product.price
-        purchase.products.add(product)
-        purchase.stripe_price += product.stripe_price
-        products.append(product) 
-        product.save()
-        stripe_price_id_list.append(product.stripe_price_id)
+        product_name = product.name if not product_name else product_name
+        price = product.price * quantity
+        purchase_item = PurchaseItem.objects.create(
+            purchase=purchase, 
+            product=product, 
+            quantity=quantity
+            )
+        total_price += price
+        purchase_items.append(purchase_item)
     
-    order_name = f'{products[0].name} 외 {len(items) - 1}' if len(items) > 1 else products[0].name
+    order_name = f'{product_name} 외 {len(items) - 1}' if len(items) > 1 else product_name
     purchase.order_name = order_name
 
     request.session['purchase_id'] = purchase.id
@@ -58,11 +60,10 @@ def stripe_start(request):
     stopped_url = f"{BASE_ENDPOINT}{stopped_path}"
 
     line_items = []
-    for product in products:
-        cart = Cart.objects.get(product=product, user=request.user)
+    for item in purchase_items:
         line_item = {
-            "price": product.stripe_price_id,
-            "quantity": cart.quantity,
+            "price": item.stripe_price_id,
+            "quantity": item.quantity,
         }
         line_items.append(line_item)
 
@@ -73,7 +74,7 @@ def stripe_start(request):
         cancel_url=stopped_url
     )
     purchase.stripe_checkout_session_id = checkout_session.id
-    purchase.stripe_price = sum([product.stripe_price for product in products])
+    purchase.stripe_price = total_price
 
     purchase.save()
     return JsonResponse({'checkout_url': checkout_session.url})
@@ -88,12 +89,15 @@ def stripe_success(request):
         purchase.provider = "stripe"
         purchase.save()
 
-        for product in purchase.products.all():
-            cart = Cart.objects.get(product=product, user=request.user)
-            quantity = cart.quantity
-            product.stock -= quantity
-            product.save()
-            cart.delete()
+        purchase_items = PurchaseItem.objects.filter(purchase=purchase)
+        products = []
+        for item in purchase_items:
+            item.product.stock -= item.quantity
+            products.append(item.product)
+
+        Product.objects.bulk_update(products, ['stock'])
+        carts = Cart.objects.filter(product__in=products, user=purchase.user)
+        carts.delete()
 
         del request.session['purchase_id']
         return redirect('/purchases/orders/')
@@ -126,21 +130,25 @@ def kakaopay_start(request):
         return HttpResponseBadRequest()
     
     products = []
-    total_price = 0
+    total_price, price = 0, 0
     items_count = len(items)
     purchase = Purchase.objects.create(user=request.user)
-    price = 0
+    product_name = ''
     for item in items:
-        product = Product.objects.get(handle=item['product__handle'])
-        products.append(product)
-        price = product.price * item['quantity']
+        product_handle = item['product__handle']
+        product = Product.objects.get(handle=product_handle)
+        product_quantity = item['quantity']
+        product_name = product.name if not product_name else product_name
+
+        PurchaseItem.objects.create(purchase=purchase, product=product, quantity=product_quantity)
+        price = product.price * product_quantity
         total_price += price
-        purchase.products.add(product)
+        products.append(product)
     
     if items_count > 1:
-        order_name = f'{products[0].name} 외 {items_count - 1}'
+        order_name = f'{product_name} 외 {items_count - 1}'
     else:
-        order_name = products[0].name
+        order_name = product_name
     
     purchase.order_name = order_name
     purchase.kakaopay_price = total_price
@@ -216,6 +224,17 @@ def kakaopay_success(request):
     
     if result.get('msg'):
         return JsonResponse({'error': 'Purchase not found'})
+    
+    purchase_items = PurchaseItem.objects.filter(purchase=purchase)
+    products = []
+    for item in purchase_items:
+        item.product.stock -= item.quantity
+        products.append(item.product)
+
+    Product.objects.bulk_update(products, ['stock'])
+    carts = Cart.objects.filter(product__in=products, user=purchase.user)
+    carts.delete()
+
     purchase.completed = True
     purchase.save()
     del request.session['purchase_id']
@@ -237,84 +256,99 @@ def kakaopay_stopped(request):
     return HttpResponse("Purchase not found")
 
 
-@login_required
-def stripe_payment_cancel(request, purchase_id):
-    purchase = get_object_or_404(Purchase, id=purchase_id, user=request.user, completed=True)
-    if request.method == 'POST':
-        if purchase.stripe_checkout_session_id:
-            try:
-                session = stripe.checkout.Session.retrieve(purchase.stripe_checkout_session_id)
-                if session.payment_status == 'paid':
-                    payment_intent_id = session.payment_intent
-                    amount = session.amount_total
+def stripe_payment_cancel(purchase):
+    if purchase.stripe_checkout_session_id:
+        try:
+            session = stripe.checkout.Session.retrieve(purchase.stripe_checkout_session_id)
+            if session.payment_status == 'paid':
+                payment_intent_id = session.payment_intent
+                amount = session.amount_total
 
-                    refund = stripe.Refund.create(
-                        payment_intent=payment_intent_id,
-                        amount=amount,
-                    )
-                    if refund.status == 'succeeded':
-                        products = purchase.products.all()
+                refund = stripe.Refund.create(
+                    payment_intent=payment_intent_id,
+                    amount=amount,
+                )
+                
+                if refund.status == 'succeeded':
+                    purchase_items = PurchaseItem.objects.filter(purchase=purchase)
+                    products = []
+                    for item in purchase_items:
+                        item.product.stock += item.quantity
+                        products.append(item.product)
+
+                    Product.objects.bulk_update(products, ['stock'])
                         
-                        for product in products:
-                            purchase_item = get_object_or_404(PurchaseItem, product=product, purchase=purchase)
-                            quantity = purchase_item.quantity
-                            product.stock += quantity
-                            product.save()
-                            
-                        purchase.completed = False
-                        purchase.save()
-                        return redirect('purchases:orders')
-                    else:
-                        return HttpResponse("Failed to process refund")
+                    purchase.completed = False
+                    purchase.save()
+                    return True
                 else:
-                    return redirect('purchases:orders')
-            except stripe.error.StripeError as e:
-                print(str(e))
-                return HttpResponse("Stripe API error occurred")
-        else:
-            # No Stripe checkout session, simply mark the purchase as incomplete
-            purchase.completed = False
-            purchase.save()
-            return redirect('purchases:orders')
-    return HttpResponseBadRequest()
+                    return False
+            else:
+                return False
+        except stripe.error.StripeError as e:
+            print(str(e))
+            return False
+   
+    return False
 
 
-@login_required
-def kakaopay_payment_cancel(request, purchase_id):
-    purchase = get_object_or_404(Purchase, id=purchase_id, user=request.user, completed=True)
-    if request.method == 'POST':
-        tid = purchase.kakaopay_checkout_tid
-        total_price = purchase.kakaopay_price
-        
-        url = f'https://kapi.kakao.com/v1/payment/cancel'
-        header = {
-            'Authorization': f'KakaoAK {kakaopay_admin_key}'
-        }
-
-        data = {
-            'cid': 'TC0ONETIME', # 테스트용 기본 가맹점 키 값
-            'tid': tid,
-            'cancel_amount': total_price,
-            'cancel_tax_free_amount': 0
-        }
-
-        res = requests.post(url, data=data, headers=header)
-        result = res.json()
-
-        if result.get('msg'):
-            return HttpResponse("Failed to cancel")
+def kakaopay_payment_cancel(purchase):
+    tid = purchase.kakaopay_checkout_tid
+    total_price = purchase.kakaopay_price
     
-        purchase.completed = False
-        purchase.provider = ''
-        purchase.kakaopay_checkout_tid = ''
-        purchase.kakaopay_price = 0
-        purchase.save()
+    url = f'https://kapi.kakao.com/v1/payment/cancel'
+    header = {
+        'Authorization': f'KakaoAK {kakaopay_admin_key}'
+    }
 
-    return HttpResponseBadRequest()
+    data = {
+        'cid': 'TC0ONETIME', # 테스트용 기본 가맹점 키 값
+        'tid': tid,
+        'cancel_amount': total_price,
+        'cancel_tax_free_amount': 0
+    }
+
+    res = requests.post(url, data=data, headers=header)
+    result = res.json()
+
+    if result.get('msg'):
+        return False
+
+    purchase_items = PurchaseItem.objects.filter(purchase=purchase)
+    products = []
+    for item in purchase_items:
+        item.product.stock += item.quantity
+        products.append(item.product)
+
+    Product.objects.bulk_update(products, ['stock'])
+
+    purchase.completed = False
+    purchase.save()
+    return True
 
 
 @login_required
 def purchase_order_view(request):
     purchases = Purchase.objects.filter(user=request.user)
     return render(request, "orders.html", {"purchases": purchases})
+
+
+@login_required
+def payment_cancel(request, purchase_id):
+    if request.method == "POST":
+        purchase = get_object_or_404(Purchase, id=purchase_id, user=request.user, completed=True)
+        is_success = False
+
+        match(purchase.provider):
+            case "stripe":
+                is_success = stripe_payment_cancel(purchase)
+            case "kakaopay":
+                is_success = kakaopay_payment_cancel(purchase)
+        
+        if is_success:
+            return redirect('purchases:orders')
+        
+        return HttpResponse("Failed to cancel")
+    
+    return HttpResponseBadRequest()
 
