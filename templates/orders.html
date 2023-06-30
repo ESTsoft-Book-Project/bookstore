@@ -26,17 +26,12 @@
             <td class="border border-gray-300 px-4 py-2">{% if purchase.completed %}Completed{% else %}Canceled{% endif %}</td>
             <td class="border border-gray-300 px-4 py-2">
               {% if purchase.completed %}
-                {% if purchase.provider == "stripe" %}
-                <form action="{% url 'purchases:stripe_payment_cancel' purchase.id %}" method="post">
+              
+                <form action="{% url 'purchases:payment_cancel' purchase.id %}" method="post">
                   {% csrf_token %}
                   <button type="submit" class="cancel-link" data-purchase-id="{{ purchase.id }}">Cancel Payment</button>
                 </form>
-                {% elif purchase.provider == "kakaopay" %}
-                <form action="{% url 'purchases:kakaopay_payment_cancel' purchase.id %}" method="post">
-                  {% csrf_token %}
-                  <button type="submit" class="cancel-link" data-purchase-id="{{ purchase.id }}">Cancel Payment</button>
-                </form>
-                {% endif %}
+               
               {% endif %}
             </td>
           </tr>

@@ -256,90 +256,99 @@ def kakaopay_stopped(request):
     return HttpResponse("Purchase not found")
 
 
-@login_required
-def stripe_payment_cancel(request, purchase_id):
-    purchase = get_object_or_404(Purchase, id=purchase_id, user=request.user, completed=True)
-    if request.method == 'POST':
-        if purchase.stripe_checkout_session_id:
-            try:
-                session = stripe.checkout.Session.retrieve(purchase.stripe_checkout_session_id)
-                if session.payment_status == 'paid':
-                    payment_intent_id = session.payment_intent
-                    amount = session.amount_total
+def stripe_payment_cancel(purchase):
+    if purchase.stripe_checkout_session_id:
+        try:
+            session = stripe.checkout.Session.retrieve(purchase.stripe_checkout_session_id)
+            if session.payment_status == 'paid':
+                payment_intent_id = session.payment_intent
+                amount = session.amount_total
 
-                    refund = stripe.Refund.create(
-                        payment_intent=payment_intent_id,
-                        amount=amount,
-                    )
-                    if refund.status == 'succeeded':
-                        purchase_items = PurchaseItem.objects.filter(purchase=purchase)
-                        products = []
-                        for item in purchase_items:
-                            item.product.stock += item.quantity
-                            products.append(item.product)
+                refund = stripe.Refund.create(
+                    payment_intent=payment_intent_id,
+                    amount=amount,
+                )
+                
+                if refund.status == 'succeeded':
+                    purchase_items = PurchaseItem.objects.filter(purchase=purchase)
+                    products = []
+                    for item in purchase_items:
+                        item.product.stock += item.quantity
+                        products.append(item.product)
 
-                        Product.objects.bulk_update(products, ['stock'])
-                            
-                        purchase.completed = False
-                        purchase.save()
-                        return redirect('purchases:orders')
-                    else:
-                        return HttpResponse("Failed to process refund")
+                    Product.objects.bulk_update(products, ['stock'])
+                        
+                    purchase.completed = False
+                    purchase.save()
+                    return True
                 else:
-                    return redirect('purchases:orders')
-            except stripe.error.StripeError as e:
-                print(str(e))
-                return HttpResponse("Stripe API error occurred")
-        else:
-            # No Stripe checkout session, simply mark the purchase as incomplete
-            purchase.completed = False
-            purchase.save()
-            return redirect('purchases:orders')
-    return HttpResponseBadRequest()
+                    return False
+            else:
+                return False
+        except stripe.error.StripeError as e:
+            print(str(e))
+            return False
+   
+    return False
 
 
-@login_required
-def kakaopay_payment_cancel(request, purchase_id):
-    purchase = get_object_or_404(Purchase, id=purchase_id, user=request.user, completed=True)
-    if request.method == 'POST':
-        tid = purchase.kakaopay_checkout_tid
-        total_price = purchase.kakaopay_price
-        
-        url = f'https://kapi.kakao.com/v1/payment/cancel'
-        header = {
-            'Authorization': f'KakaoAK {kakaopay_admin_key}'
-        }
+def kakaopay_payment_cancel(purchase):
+    tid = purchase.kakaopay_checkout_tid
+    total_price = purchase.kakaopay_price
+    
+    url = f'https://kapi.kakao.com/v1/payment/cancel'
+    header = {
+        'Authorization': f'KakaoAK {kakaopay_admin_key}'
+    }
 
-        data = {
-            'cid': 'TC0ONETIME', # 테스트용 기본 가맹점 키 값
-            'tid': tid,
-            'cancel_amount': total_price,
-            'cancel_tax_free_amount': 0
-        }
+    data = {
+        'cid': 'TC0ONETIME', # 테스트용 기본 가맹점 키 값
+        'tid': tid,
+        'cancel_amount': total_price,
+        'cancel_tax_free_amount': 0
+    }
 
-        res = requests.post(url, data=data, headers=header)
-        result = res.json()
+    res = requests.post(url, data=data, headers=header)
+    result = res.json()
 
-        if result.get('msg'):
-            return HttpResponse("Failed to cancel")
+    if result.get('msg'):
+        return False
 
-        purchase_items = PurchaseItem.objects.filter(purchase=purchase)
-        products = []
-        for item in purchase_items:
-            item.product.stock += item.quantity
-            products.append(item.product)
+    purchase_items = PurchaseItem.objects.filter(purchase=purchase)
+    products = []
+    for item in purchase_items:
+        item.product.stock += item.quantity
+        products.append(item.product)
 
-        Product.objects.bulk_update(products, ['stock'])
+    Product.objects.bulk_update(products, ['stock'])
 
-        purchase.completed = False
-        purchase.save()
-        return redirect('purchases:orders')
-
-    return HttpResponseBadRequest()
+    purchase.completed = False
+    purchase.save()
+    return True
 
 
 @login_required
 def purchase_order_view(request):
     purchases = Purchase.objects.filter(user=request.user)
     return render(request, "orders.html", {"purchases": purchases})
+
+
+@login_required
+def payment_cancel(request, purchase_id):
+    if request.method == "POST":
+        purchase = get_object_or_404(Purchase, id=purchase_id, user=request.user, completed=True)
+        is_success = False
+
+        match(purchase.provider):
+            case "stripe":
+                is_success = stripe_payment_cancel(purchase)
+            case "kakaopay":
+                is_success = kakaopay_payment_cancel(purchase)
+        
+        if is_success:
+            return redirect('purchases:orders')
+        
+        return HttpResponse("Failed to cancel")
+    
+    return HttpResponseBadRequest()
 
