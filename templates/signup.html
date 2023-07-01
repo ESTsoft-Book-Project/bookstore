@@ -17,18 +17,6 @@
 
     <label for="password2">비밀번호 확인:</label>
     <input type="password" id="password2" name="password2" autocomplete="new-password" required /><br /><br />
-
-    <!-- 에러 메시지 -->
-    {% if form.errors %}
-    <ul class="errorlist">
-      {% for field_errors in form.errors.values %}
-      {% for error in field_errors %}
-      <li>{{ error }}</li>
-      {% endfor %}
-      {% endfor %}
-      {% if form.errors %} {{ form.errors }} {% endif %}
-    </ul>
-    {% endif %}
     <input type="submit" value="가입하기" />
   </form>
   <script>
@@ -61,11 +49,11 @@
             alert(data.message);
             window.location.href = data.redirect;
           } else {
-            alert(data.message);
+            alert(data.errors + '\n' + data.message);
           }
         })
         .catch(error => {
-          console.error("에러:", error);
+          console.error("error:", error);
         });
     }
   </script>

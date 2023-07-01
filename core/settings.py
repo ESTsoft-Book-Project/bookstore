@@ -47,7 +47,7 @@ INSTALLED_APPS = [
     "purchases",
     "carts",
     "mathfilters",
-
+    "storages",
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
@@ -109,23 +109,26 @@ ACCOUNT_AUTHENTICATION_METHOD = 'email'
 ACCOUNT_USERNAME_REQUIRED = False
 ACCOUNT_USER_MODEL_USERNAME_FIELD = None
 SOCIALACCOUNT_LOGIN_ON_GET = True
-ACCOUNT_SIGNUP_REDIRECT_URL = "/users/profile/"
+ACCOUNT_SIGNUP_REDIRECT_URL = "/users/social/signup/"
 
 LOGIN_REDIRECT_URL = "/"
-LOGOUT_REDIRECT_URL = "/users/login/"
+LOGOUT_REDIRECT_URL = "/users/signin/"
 
 WSGI_APPLICATION = "core.wsgi.application"
 
 
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
-
+from .db import * #noqa 
+'''
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
         "NAME": BASE_DIR / "db.sqlite3",
     }
 }
+
+'''
 
 
 # Password validation
@@ -161,8 +164,8 @@ USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
-
-STATIC_URL = "static/"
+from core.storages.conf import * #noqa
+STATIC_URL = "/static/"
 
 STATICFILES_DIRS = [
     BASE_DIR / "static",
