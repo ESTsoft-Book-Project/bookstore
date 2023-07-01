@@ -15,11 +15,18 @@ from django.views.decorators.http import require_POST
 
 def book_list(request):
     books = Product.objects.all()
+    for book in books:
+        url = str(book.image)
+        url_without_query = url.split('?')[0]
+        book.image = url_without_query
     return render(request, 'book_list.html', {'books': books})
 
 
 def book_detail(request, handle):
     book = get_object_or_404(Product, handle=handle)
+    url = str(book.image)
+    url_without_query = url.split('?')[0]
+    book.image = url_without_query
     comments = Comment.objects.filter(book=book)
     context = {
             'book': book,
