@@ -18,10 +18,14 @@ class UserSerializer(serializers.ModelSerializer):
         }
 
     def create(self, validated_data):
+        email = validated_data.get('email')
+        if User.objects.filter(email=email).exists():
+            raise serializers.ValidationError()
+
         password1 = validated_data.pop("password1")
         password2 = validated_data.pop("password2")
         if password1 != password2:
-            raise serializers.ValidationError("비밀번호가 일치하지 않습니다.")
+            raise serializers.ValidationError()
         return User.objects.create_user(**validated_data, password=password1)
 
     def validate(self, attrs):

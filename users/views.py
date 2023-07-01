@@ -21,9 +21,18 @@ def signup(request):
             serializer.save()
             return Response({'success': True, 'message': '회원가입이 완료되었습니다.', 'redirect': '/users/signin/'})
         except serializers.ValidationError as error:
-            errors = error.detail.get('password1', [])
-            errors = errors[0] if len(errors) > 0 else ''
-            return Response({'success': False, 'message': '유효한 비밀번호가 아닙니다.', 'errors': errors}, status=status.HTTP_400_BAD_REQUEST)
+            
+            errors=''
+            if 'email' in error.detail and 'password1' not in error.detail:
+                errors = error.detail.get('email', [])
+                errors = errors[0] if len(errors) > 0 else ''
+                
+            if 'password1' in error.detail and 'email' not in error.detail:
+                print('password1')
+                errors = error.detail.get('password1', [])
+                errors = errors[0] if len(errors) > 0 else ''
+            print(errors)
+            return Response({'success': False, 'errors': errors}, status=status.HTTP_400_BAD_REQUEST)
     return render(request, 'signup.html')
     
 
