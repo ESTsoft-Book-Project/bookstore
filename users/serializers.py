@@ -35,7 +35,7 @@ class UserSerializer(serializers.ModelSerializer):
             password_validation.validate_password(password1)
         
         except DjangoValidationError as error:
-            raise serializers.ValidationError(error)
+            raise serializers.ValidationError({'password1': error})
 
         return attrs
         
