@@ -33,15 +33,22 @@ def social_signup(request):
     user = request.user
     if request.method == 'PATCH':
         serializer = SocialSignupSerializer(user, data=request.data, partial=True)
-        if serializer.is_valid():
+        try:
+            serializer.is_valid(raise_exception=True)
             serializer.save()
             email = serializer.validated_data['email']
             password = serializer.validated_data['password1']
             user = authenticate(request, email=email, password=password)
             login(request, user)
             return Response({'success': True, 'message': '회원가입이 완료되었습니다.', 'redirect': '/'})
-    serializer = SocialSignupSerializer(user)
-    return render(request, "social_signup.html", {"user": serializer.data})
+        except serializers.ValidationError as error:
+            if isinstance(error.detail, list):
+                errors = error.detail[0] if len(error.detail) > 0 else ''
+            else:
+                errors = error.detail.get('password1', [])
+                errors = errors[0] if len(errors) > 0 else ''
+            return Response({'success': False, 'message': '유효한 비밀번호가 아닙니다.', 'errors': errors}, status=status.HTTP_400_BAD_REQUEST)
+    return render(request, "social_signup.html")
 
 
 @csrf_exempt
