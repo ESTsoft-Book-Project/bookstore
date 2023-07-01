@@ -49,7 +49,7 @@
             alert(data.message);
             window.location.href = data.redirect;
           } else {
-            alert(data.errors + '\n' + data.message);
+            alert(data.errors);
           }
         })
         .catch(error => {
