@@ -29,7 +29,7 @@
     document.querySelector("#productUpdate").addEventListener("submit", function (e) {
         e.preventDefault();
         fetch("/products/book/update/{{ book.handle }}/", {
-            method: "PATCH",
+            method: "PUT",
             headers: {
                 "Content-Type": "application/json",
                 "X-CSRFToken": getCookie("csrftoken")
