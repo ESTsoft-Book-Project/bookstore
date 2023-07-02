@@ -58,14 +58,14 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    "core.middleware.CorsMiddleware",
+    "django.middleware.common.CommonMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
-    "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    'corsheaders.middleware.CorsMiddleware',
 ]
 
 ROOT_URLCONF = "core.urls"
@@ -185,5 +185,25 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 LOGIN_URL = '/users/signin/'
 
-CORS_ORIGIN_ALLOW_ALL = True
 CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_PRIVATE_NETWORK = True
+CORS_ALLOWED_ORIGINS = [
+    "https://allbooks-choi-2.s3.amazonaws.com",
+    "http://13.209.22.220"
+]
+CSRF_TRUSTED_ORIGINS = [
+    "https://allbooks-choi-2.s3.amazonaws.com",
+    "http://13.209.22.220"
+]
+
+from corsheaders.defaults import default_methods
+from corsheaders.defaults import default_headers
+
+CORS_ALLOW_METHODS = (
+    *default_methods,
+)
+
+CORS_ALLOW_HEADERS = (
+    *default_headers,
+)
+
